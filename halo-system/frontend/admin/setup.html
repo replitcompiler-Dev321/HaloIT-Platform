@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Halo Setup</title>
+  <link rel="stylesheet" href="/assets/css/style.css" />
+</head>
+<body>
+  <div style="padding:1rem; max-width:900px; margin:auto;">
+    <h1>Deployment & Setup</h1>
+    <p>Use the buttons below to run common setup steps. Actions run on the server and require a Super Admin session.</p>
+
+    <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+      <button class="btn-mini" onclick="run('npm install')">Install Dependencies</button>
+      <button class="btn-mini" onclick="run('npm run db:setup')">Initialize DB</button>
+      <button class="btn-mini" onclick="run('npm start')">Start Server (foreground)</button>
+      <button class="btn-mini" onclick="run('bash ../deploy_local.sh')">Deploy with Docker Compose</button>
+    </div>
+
+    <div style="margin-top:1rem;">
+      <div id="out" class="terminal" style="min-height:200px; white-space:pre-wrap; font-family:monospace;"></div>
+    </div>
+
+    <script>
+      async function run(cmd) {
+        const out = document.getElementById('out');
+        out.textContent += `\n$ ${cmd}\n`;
+        try {
+          const res = await fetch('/api/admin/terminal', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command: cmd }),
+          });
+          const data = await res.json();
+          if (data.output) out.textContent += data.output + '\n';
+          if (data.error) out.textContent += 'ERROR: ' + (data.error || '') + '\n';
+        } catch (err) {
+          out.textContent += 'Connection error: ' + err.message + '\n';
+        }
+        out.scrollTop = out.scrollHeight;
+      }
+    </script>
+  </div>
+</body>
+</html>

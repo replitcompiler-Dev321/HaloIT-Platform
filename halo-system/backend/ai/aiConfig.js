@@ -10,6 +10,7 @@ const runtimeOverrides = {
   temperature: Number(process.env.AI_TEMPERATURE || 0.7),
   maxTokens: Number(process.env.AI_MAX_TOKENS || 1000),
   timeoutMs: Number(process.env.AI_TIMEOUT_MS || 30000),
+  apiKey: process.env.AZURE_OPENAI_API_KEY || '',
 };
 
 function getProviderConfig() {
@@ -25,7 +26,7 @@ function getProviderConfig() {
     timeoutMs: runtimeOverrides.timeoutMs,
     azure: {
       endpoint: runtimeOverrides.endpoint || process.env.AZURE_OPENAI_ENDPOINT || '',
-      apiKey: process.env.AZURE_OPENAI_API_KEY || '',
+      apiKey: runtimeOverrides.apiKey || process.env.AZURE_OPENAI_API_KEY || '',
       deployment: runtimeOverrides.deployment || process.env.AZURE_OPENAI_DEPLOYMENT || '',
       apiVersion: runtimeOverrides.apiVersion || process.env.AZURE_OPENAI_API_VERSION || '2024-10-21',
     },
@@ -107,6 +108,9 @@ function updateSettings(updates = {}) {
   }
   if (typeof updates.timeoutMs === 'number') {
     runtimeOverrides.timeoutMs = updates.timeoutMs;
+  }
+  if (typeof updates.apiKey === 'string') {
+    runtimeOverrides.apiKey = updates.apiKey;
   }
   if (typeof updates.fallbackProviders === 'string') {
     runtimeOverrides.fallbackProviders = updates.fallbackProviders

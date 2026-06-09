@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -20,6 +21,7 @@ const clientRoutes = require('./routes/clients');
 const slaRoutes = require('./routes/sla');
 const clientPortalRoutes = require('./routes/clientPortal');
 const monitoringRoutes = require('./routes/monitoring');
+const adminRoutes = require('./routes/admin');
 
 // Import services
 const monitoringService = require('./services/monitoring');
@@ -36,6 +38,10 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
   credentials: true,
 }));
+
+// Serve frontend assets and admin UI
+app.use(express.static(path.join(__dirname, '../frontend')));
+app.use('/generated-apps', express.static(path.join(__dirname, '../generated-apps')));
 
 // Logging middleware
 app.use(morgan('combined'));
@@ -91,6 +97,7 @@ const startServer = async () => {
     app.use('/api/clients', clientRoutes);
     app.use('/api/sla', slaRoutes);
     app.use('/api/portal', clientPortalRoutes);
+    app.use('/api/admin', adminRoutes);
 
     // Initialize monitoring service with demo data
     console.log('🔍 Initializing monitoring service...');

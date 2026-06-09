@@ -13,6 +13,7 @@ const {
   User,
   TicketTimeEntry,
   TicketApproval,
+  TicketComment,
 } = require('../db/models');
 
 const buildTicketScope = async (req) => {
@@ -157,6 +158,7 @@ router.get('/:id', authenticate, requirePermission('ticket:read'), async (req, r
         { model: Client, attributes: ['id', 'name', 'reference_code'] },
         { model: TicketTimeEntry },
         { model: TicketApproval },
+        { model: TicketComment, include: [{ model: User, as: 'author', attributes: ['id', 'email', 'display_name'] }] },
       ],
     });
 
@@ -171,6 +173,64 @@ router.get('/:id', authenticate, requirePermission('ticket:read'), async (req, r
 
     res.json({ success: true, ticket });
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get comments for a ticket
+router.get('/:id/comments', authenticate, requirePermission('ticket:read'), async (req, res) => {
+  try {
+    const ticket = await Ticket.findByPk(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    if (!(await verifyTicketAccess(req, ticket))) {
+      await auditService.logFailure(req, 'ticket_comments_read_denied', 'Access denied', 'tickets', ticket.id);
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const comments = await TicketComment.findAll({
+      where: { ticket_id: ticket.id },
+      include: [{ model: User, as: 'author', attributes: ['id', 'email', 'display_name'] }],
+      order: [['created_at', 'ASC']],
+    });
+
+    res.json({ success: true, comments });
+  } catch (error) {
+    await auditService.logFailure(req, 'ticket_comments_read_failed', error.message, 'tickets', req.params.id);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Add a comment to a ticket
+router.post('/:id/comments', authenticate, requirePermission('ticket:update'), [body('comment').notEmpty().trim()], async (req, res) => {
+  try {
+    const ticket = await Ticket.findByPk(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    if (!(await verifyTicketAccess(req, ticket))) {
+      await auditService.logFailure(req, 'ticket_comment_create_denied', 'Access denied', 'tickets', ticket.id);
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const comment = await TicketComment.create({
+      ticket_id: ticket.id,
+      author_id: req.user.id,
+      comment: req.body.comment,
+      internal: !!req.body.internal,
+    });
+
+    await auditService.log(req, 'ticket_comment_created', 'ticket_comments', comment.id, {
+      ticket_id: ticket.id,
+      author_id: req.user.id,
+    });
+
+    res.status(201).json({ success: true, comment });
+  } catch (error) {
+    await auditService.logFailure(req, 'ticket_comment_create_failed', error.message, 'tickets', req.params.id);
     res.status(500).json({ error: error.message });
   }
 });

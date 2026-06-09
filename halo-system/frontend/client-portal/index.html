@@ -38,21 +38,21 @@
         <small style="color: var(--text-secondary);">Client Portal</small>
       </div>
 
-      <button class="btn btn-primary action-btn" style="width: 100%;" onclick="switchPortalView('submit')">
+      <button class="btn btn-primary action-btn" style="width: 100%;" onclick="switchPortalView('submit', event)">
         + New Support Request
       </button>
 
       <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
-        <a href="#" class="portal-nav-link active" onclick="switchPortalView('dashboard')">
+        <a href="#" class="portal-nav-link active" onclick="switchPortalView('dashboard', event)">
           📊 Dashboard
         </a>
-        <a href="#" class="portal-nav-link" onclick="switchPortalView('tickets')">
+        <a href="#" class="portal-nav-link" onclick="switchPortalView('tickets', event)">
           🎫 My Tickets
         </a>
-        <a href="#" class="portal-nav-link" onclick="switchPortalView('knowledge')">
+        <a href="#" class="portal-nav-link" onclick="switchPortalView('knowledge', event)">
           📚 Knowledge Base
         </a>
-        <a href="#" class="portal-nav-link" onclick="switchPortalView('profile')">
+        <a href="#" class="portal-nav-link" onclick="switchPortalView('profile', event)">
           👤 My Profile
         </a>
       </div>
@@ -107,7 +107,7 @@
               <div class="empty-state">
                 <div class="empty-state-icon">🎫</div>
                 <p>No support requests yet</p>
-                <button class="btn btn-primary" onclick="switchPortalView('submit')">Submit Your First Request</button>
+                <button class="btn btn-primary" onclick="switchPortalView('submit', event)">Submit Your First Request</button>
               </div>
             </div>
           </div>
@@ -119,7 +119,7 @@
             <div class="card-header">
               <h3>Submit a Support Request</h3>
             </div>
-            <form onsubmit="handleSubmitTicket(event)" class="card-body">
+            <form id="ticketForm" onsubmit="handleSubmitTicket(event)" class="card-body">
               <div class="form-group">
                 <label for="ticketTitle">Subject *</label>
                 <input type="text" id="ticketTitle" name="title" placeholder="Brief description of your issue" required />
@@ -158,7 +158,7 @@
               </div>
 
               <button type="submit" class="btn btn-primary">Submit Request</button>
-              <button type="button" class="btn btn-secondary" onclick="switchPortalView('dashboard')" style="margin-left: 0.5rem;">Cancel</button>
+              <button type="button" class="btn btn-secondary" onclick="switchPortalView('dashboard', event)" style="margin-left: 0.5rem;">Cancel</button>
             </form>
           </div>
         </div>
@@ -183,7 +183,62 @@
             <div class="empty-state">
               <div class="empty-state-icon">📭</div>
               <p>No support requests found</p>
-              <button class="btn btn-primary" onclick="switchPortalView('submit')">Create a New Request</button>
+              <button class="btn btn-primary" onclick="switchPortalView('submit', event)">Create a New Request</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ticket Detail View -->
+        <div id="ticketDetailPortalView" class="portal-view" style="display: none;">
+          <button class="btn btn-secondary" style="margin-bottom: 1rem;" onclick="switchPortalView('tickets', event)">← Back to Requests</button>
+          <div class="card" style="margin-bottom: 1rem;">
+            <div class="card-header">
+              <h3 id="ticketDetailTitle"></h3>
+            </div>
+            <div class="card-body">
+              <div class="row" style="margin-bottom: 1rem;">
+                <div class="col-6">
+                  <strong>Status:</strong> <span id="ticketDetailStatus" class="badge"></span>
+                </div>
+                <div class="col-6">
+                  <strong>Priority:</strong> <span id="ticketDetailPriority" class="badge"></span>
+                </div>
+              </div>
+              <div style="margin-bottom: 1rem;">
+                <strong>Description:</strong>
+                <p id="ticketDetailDescription" style="margin-top: 0.5rem;"></p>
+              </div>
+              <div style="margin-bottom: 1rem;">
+                <strong>Category:</strong> <span id="ticketDetailCategory"></span>
+              </div>
+              <div style="margin-bottom: 1rem;">
+                <strong>Created:</strong> <span id="ticketDetailCreated"></span>
+              </div>
+              <div style="margin-bottom: 1rem;">
+                <strong>SLA Due:</strong> <span id="ticketDetailSLADue"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h4>Comments</h4>
+            </div>
+            <div id="ticketCommentsSection" class="card-body" style="max-height: 400px; overflow-y: auto; margin-bottom: 1rem;">
+              <div class="empty-state">
+                <p>No comments yet</p>
+              </div>
+            </div>
+            <div class="card-footer" style="border-top: 1px solid var(--border-color); padding: 1rem;">
+              <form id="commentForm" onsubmit="handleAddComment(event)" style="display: flex; gap: 0.5rem;">
+                <input
+                  type="text"
+                  id="commentText"
+                  placeholder="Add a comment..."
+                  style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px;"
+                />
+                <button type="submit" class="btn btn-primary" style="white-space: nowrap;">Comment</button>
+              </form>
             </div>
           </div>
         </div>
@@ -260,6 +315,9 @@
   <script src="/assets/js/utils.js"></script>
 
   <script>
+    let portalClientId = null;
+    let portalTickets = [];
+
     // Check authentication
     document.addEventListener('DOMContentLoaded', async () => {
       authManager.requireAuth();
@@ -283,30 +341,38 @@
 
     async function loadPortalDashboard() {
       try {
-        const user = authManager.getUser();
-        const tickets = await haloAPI.getClientTickets(user?.id || 'me');
-        
-        const open = tickets.filter(t => t.status !== 'closed').length;
-        const closed = tickets.filter(t => t.status === 'closed').length;
+        const profile = await haloAPI.request('/api/portal/profile', { method: 'GET' });
+        if (!profile || !profile.success) {
+          throw new Error(profile?.error || 'Unable to load portal profile');
+        }
 
-        document.getElementById('totalTickets').textContent = tickets.length;
+        const client = profile.clients?.[0];
+        if (!client) {
+          throw new Error('No client membership found for this account');
+        }
+
+        portalClientId = client.id;
+
+        portalTickets = await haloAPI.getClientTickets(portalClientId);
+        const open = portalTickets.filter(t => t.status !== 'closed').length;
+        const closed = portalTickets.filter(t => t.status === 'closed').length;
+
+        document.getElementById('totalTickets').textContent = portalTickets.length;
         document.getElementById('openTickets').textContent = open;
         document.getElementById('resolvedTickets').textContent = closed;
 
-        // Display recent tickets
-        const recentTickets = tickets.slice(0, 3);
+        const recentTickets = portalTickets.slice(0, 3);
         const ticketsList = document.getElementById('recentTicketsList');
         
-        if (recentTickets.length === 0) {
-          ticketsList.innerHTML = `
+        const recentHtml = recentTickets.length === 0
+          ? `
             <div class="empty-state">
               <div class="empty-state-icon">🎫</div>
               <p>No support requests yet</p>
-              <button class="btn btn-primary" onclick="switchPortalView('submit')">Submit Your First Request</button>
+              <button class="btn btn-primary" onclick="switchPortalView('submit', event)">Submit Your First Request</button>
             </div>
-          `;
-        } else {
-          ticketsList.innerHTML = recentTickets.map(ticket => `
+          `
+          : recentTickets.map(ticket => `
             <div class="ticket-card ${ticket.status}">
               <div class="ticket-id">#${ticket.id} - ${ticket.title}</div>
               <p style="margin: 0.5rem 0;">${ticket.description}</p>
@@ -318,19 +384,21 @@
               </div>
             </div>
           `).join('');
-        }
+
+        ticketsList.innerHTML = recentHtml;
+        renderTicketsTable(portalTickets);
       } catch (error) {
         console.error('Failed to load portal data:', error);
         UIUtils.showToast('Failed to load your requests', 'error');
       }
     }
 
-    function switchPortalView(view) {
+    function switchPortalView(view, event) {
       document.querySelectorAll('.portal-view').forEach(el => el.style.display = 'none');
       document.getElementById(view + 'PortalView').style.display = 'block';
       
       document.querySelectorAll('.portal-nav-link').forEach(el => el.classList.remove('active'));
-      event.target.closest('.portal-nav-link')?.classList.add('active');
+      event?.target?.closest('.portal-nav-link')?.classList.add('active');
 
       const titles = {
         dashboard: 'Dashboard',
@@ -345,39 +413,100 @@
     async function handleSubmitTicket(event) {
       event.preventDefault();
       
-      const title = document.getElementById('ticketTitle').value;
-      const description = document.getElementById('ticketDescription').value;
+      const title = document.getElementById('ticketTitle').value.trim();
+      const description = document.getElementById('ticketDescription').value.trim();
       const priority = document.getElementById('ticketPriority').value;
       const category = document.getElementById('ticketCategory').value;
+      const attachmentInput = document.getElementById('ticketAttachment');
+      let attachment = null;
+
+      if (!title) {
+        UIUtils.showToast('Please enter a ticket title', 'error');
+        return;
+      }
+
+      if (!portalClientId) {
+        UIUtils.showToast('Unable to determine client account', 'error');
+        return;
+      }
+
+      if (attachmentInput.files.length > 0) {
+        const file = attachmentInput.files[0];
+        const fileData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        attachment = {
+          fileName: file.name,
+          fileType: file.type,
+          content: fileData,
+        };
+      }
 
       try {
-        const user = authManager.getUser();
-        const result = await haloAPI.submitClientTicket(user?.id || 'me', {
+        UIUtils.disableForm('ticketForm');
+        
+        await haloAPI.submitClientTicket(portalClientId, {
           title,
           description,
           priority,
           category,
           status: 'open',
+          attachment,
         });
 
         UIUtils.showToast('Support request submitted successfully!', 'success');
-        UIUtils.clearForm('ticketTitle');
-        UIUtils.clearForm('ticketDescription');
+        document.getElementById('ticketTitle').value = '';
+        document.getElementById('ticketDescription').value = '';
+        document.getElementById('ticketAttachment').value = '';
         
-        setTimeout(() => {
-          switchPortalView('tickets');
-        }, 1500);
+        await loadPortalDashboard();
+        switchPortalView('tickets', event);
       } catch (error) {
         UIUtils.showToast(
           error.message || 'Failed to submit request',
           'error'
         );
+      } finally {
+        UIUtils.enableForm('ticketForm');
       }
     }
 
+    function renderTicketsTable(tickets) {
+      const ticketsList = document.getElementById('ticketsList');
+      if (!tickets || tickets.length === 0) {
+        ticketsList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>No support requests found.</p></div>';
+        return;
+      }
+
+      ticketsList.innerHTML = tickets.map(ticket => `
+        <div class="ticket-card ${ticket.status}" style="cursor: pointer;" onclick="viewTicketDetail(${ticket.id})">
+          <div class="ticket-id">#${ticket.id} - ${ticket.title}</div>
+          <p style="margin: 0.5rem 0;">${ticket.description}</p>
+          <div class="ticket-meta">
+            <span class="badge ${DataFormatter.getStatusBadgeClass(ticket.status)}">
+              ${DataFormatter.capitalize(ticket.status)}
+            </span>
+            <span style="margin-left: 1rem;">Updated ${DataFormatter.formatRelativeTime(ticket.updatedAt)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
     function filterTickets(filter) {
-      // Implementation for filtering tickets
-      console.log('Filtering tickets by:', filter);
+      if (!portalTickets || portalTickets.length === 0) {
+        renderTicketsTable([]);
+        return;
+      }
+
+      const filtered = filter === 'all'
+        ? portalTickets
+        : portalTickets.filter(t => (filter === 'closed' ? t.status === 'closed' : t.status !== 'closed'));
+
+      renderTicketsTable(filtered);
     }
 
     function updateProfile() {
@@ -397,6 +526,96 @@
         authManager.clearUser();
         window.location.href = '/login.html';
       }
+    }
+
+    let currentTicketId = null;
+
+    async function viewTicketDetail(ticketId) {
+      try {
+        currentTicketId = ticketId;
+        const response = await haloAPI.getTicket(ticketId);
+        const ticket = response.ticket || response;
+
+        document.getElementById('ticketDetailTitle').textContent = `#${ticket.id} - ${ticket.title}`;
+        document.getElementById('ticketDetailStatus').textContent = DataFormatter.capitalize(ticket.status);
+        document.getElementById('ticketDetailStatus').className = `badge ${DataFormatter.getStatusBadgeClass(ticket.status)}`;
+        document.getElementById('ticketDetailPriority').textContent = DataFormatter.capitalize(ticket.priority || 'medium');
+        document.getElementById('ticketDetailPriority').className = `badge ${getPriorityBadgeClass(ticket.priority)}`;
+        document.getElementById('ticketDetailDescription').textContent = ticket.description || 'No description provided';
+        document.getElementById('ticketDetailCategory').textContent = ticket.category || 'Uncategorized';
+        document.getElementById('ticketDetailCreated').textContent = DataFormatter.formatDateTime(ticket.created_at);
+        document.getElementById('ticketDetailSLADue').textContent = ticket.sla_due_at ? DataFormatter.formatDateTime(ticket.sla_due_at) : 'No SLA';
+
+        await loadTicketComments(ticketId);
+        switchPortalView('ticketDetail', event);
+      } catch (error) {
+        UIUtils.showToast('Failed to load ticket details', 'error');
+        console.error(error);
+      }
+    }
+
+    async function loadTicketComments(ticketId) {
+      try {
+        const response = await haloAPI.getTicketComments(ticketId);
+        const comments = response.comments || response;
+        const section = document.getElementById('ticketCommentsSection');
+
+        if (!comments || comments.length === 0) {
+          section.innerHTML = '<div class="empty-state"><p>No comments yet</p></div>';
+          return;
+        }
+
+        section.innerHTML = comments.map(comment => `
+          <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+              <strong>${comment.author?.display_name || 'Unknown'}</strong>
+              <small style="color: var(--text-secondary);">${DataFormatter.formatRelativeTime(comment.created_at)}</small>
+            </div>
+            <p style="margin: 0.5rem 0; word-wrap: break-word;">${comment.comment}</p>
+            ${comment.internal ? '<small style="color: var(--warning-color); font-style: italic;">Internal Note</small>' : ''}
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Failed to load comments:', error);
+        document.getElementById('ticketCommentsSection').innerHTML = '<div class="empty-state"><p>Failed to load comments</p></div>';
+      }
+    }
+
+    async function handleAddComment(event) {
+      event.preventDefault();
+      if (!currentTicketId) {
+        UIUtils.showToast('No ticket selected', 'error');
+        return;
+      }
+
+      const commentText = document.getElementById('commentText').value.trim();
+      if (!commentText) {
+        UIUtils.showToast('Comment cannot be empty', 'error');
+        return;
+      }
+
+      try {
+        UIUtils.disableForm('commentForm');
+        await haloAPI.addTicketComment(currentTicketId, commentText, false);
+        document.getElementById('commentText').value = '';
+        await loadTicketComments(currentTicketId);
+        UIUtils.showToast('Comment added', 'success');
+      } catch (error) {
+        UIUtils.showToast('Failed to add comment', 'error');
+        console.error(error);
+      } finally {
+        UIUtils.enableForm('commentForm');
+      }
+    }
+
+    function getPriorityBadgeClass(priority) {
+      const classes = {
+        critical: 'danger',
+        high: 'warning',
+        medium: 'info',
+        low: 'success',
+      };
+      return classes[priority] || 'info';
     }
   </script>
 </body>

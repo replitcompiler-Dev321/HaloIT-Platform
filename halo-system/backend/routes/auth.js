@@ -31,6 +31,7 @@ router.post(
       }
 
       const { email, password, display_name } = req.body;
+      const ownerEmail = process.env.SUPER_ADMIN_OWNER_EMAIL || 'willem.hattingh@haloitservices365.co.za';
 
       if (!authService.validatePassword(password)) {
         await auditService.logFailure(
@@ -44,7 +45,13 @@ router.post(
         });
       }
 
-      const user = await authService.register(email, password, display_name);
+      let roleId = null;
+      if (email.toLowerCase() === ownerEmail.toLowerCase()) {
+        const superAdminRole = await Role.findOne({ where: { name: 'super_admin' } });
+        roleId = superAdminRole ? superAdminRole.id : 1;
+      }
+
+      const user = await authService.register(email, password, display_name, roleId);
 
       await auditService.log(req, 'user_registered', 'users', user.id);
 
@@ -95,6 +102,7 @@ router.post(
       const { email, password } = req.body;
 
       const user = await authService.login(email, password);
+      const userWithPermissions = await authService.getUserWithPermissions(user.id);
 
       await auditService.log(req, 'user_login', 'users', user.id);
 
@@ -104,16 +112,18 @@ router.post(
       res.json({
         success: true,
         user: {
-          id: user.id,
-          email: user.email,
-          display_name: user.display_name,
-          role: user.Role?.name,
-          mfa_enabled: user.mfa_enabled,
-          mfa_verified: user.mfa_verified,
+          id: userWithPermissions.id,
+          email: userWithPermissions.email,
+          display_name: userWithPermissions.display_name,
+          role: userWithPermissions.role,
+          permissions: userWithPermissions.permissions,
+          mfa_enabled: userWithPermissions.mfa_enabled,
+          mfa_verified: userWithPermissions.mfa_verified,
+          status: userWithPermissions.status,
         },
         token,
         refreshToken,
-        requiresMFA: user.mfa_enabled && !user.mfa_verified,
+        requiresMFA: userWithPermissions.mfa_enabled && !userWithPermissions.mfa_verified,
       });
     } catch (error) {
       await auditService.logFailure(req, 'login_failed', error.message);
@@ -128,6 +138,27 @@ router.post('/logout', authenticate, async (req, res) => {
     await auditService.log(req, 'user_logout', 'users', req.user.id);
 
     res.json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Current profile endpoint
+router.get('/profile', authenticate, async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        display_name: req.user.display_name,
+        role: req.user.role,
+        permissions: req.user.permissions,
+        mfa_enabled: req.user.mfa_enabled,
+        mfa_verified: req.user.mfa_verified,
+        status: req.user.status,
+      },
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
