@@ -65,8 +65,21 @@
 
   <p><a href="/">Return to Halo System</a></p>
 
+  <script src="/assets/js/haloConfig.js"></script>
   <script>
     function getApiBaseUrl() {
+      if (window.HALO_API_BASE_URL) {
+        return window.HALO_API_BASE_URL;
+      }
+
+      if (window.HALO_BACKEND_URL) {
+        return window.HALO_BACKEND_URL;
+      }
+
+      if (typeof window.getHaloApiBaseUrl === 'function') {
+        return window.getHaloApiBaseUrl();
+      }
+
       const host = window.location.hostname;
       const proto = window.location.protocol;
       const isCodespaces = /(?:\.app\.github\.dev|\.github\.dev)$/.test(host);
@@ -79,7 +92,7 @@
         return `${proto}//localhost:3000`;
       }
 
-      return `${proto}//${host}:3000`;
+      return `${proto}//${host}`;
     }
 
     const apiBaseUrl = getApiBaseUrl();

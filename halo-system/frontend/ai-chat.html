@@ -24,10 +24,13 @@
       <div id="chatOutput">Waiting for your first prompt…</div>
     </div>
 
+    <script src="/assets/js/haloConfig.js"></script>
     <script>
-      const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      const apiBaseUrl = window.HALO_API_BASE_URL || window.HALO_BACKEND_URL || (typeof window.getHaloApiBaseUrl === 'function'
+      ? window.getHaloApiBaseUrl()
+      : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://localhost:3000'
-        : `${window.location.protocol}//${window.location.hostname}:3000`;
+        : `${window.location.protocol}//${window.location.hostname}`));
 
       const sendButton = document.getElementById('sendButton');
       const promptInput = document.getElementById('prompt');

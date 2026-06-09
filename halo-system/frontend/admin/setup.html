@@ -21,12 +21,15 @@
       <div id="out" class="terminal" style="min-height:200px; white-space:pre-wrap; font-family:monospace;"></div>
     </div>
 
-    <script>
+    <script src="/assets/js/haloConfig.js"></script>
+  <script>
+      const API_BASE_URL = window.HALO_API_BASE_URL || window.HALO_BACKEND_URL || (typeof window.getHaloApiBaseUrl === 'function' ? window.getHaloApiBaseUrl() : `${window.location.protocol}//${window.location.hostname}`);
+
       async function run(cmd) {
         const out = document.getElementById('out');
         out.textContent += `\n$ ${cmd}\n`;
         try {
-          const res = await fetch('/api/admin/terminal', {
+          const res = await fetch(`${API_BASE_URL}/api/admin/terminal`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ command: cmd }),

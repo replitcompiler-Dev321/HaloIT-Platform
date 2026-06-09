@@ -18,9 +18,31 @@ Deploy via the Admin Setup page
 
 - Open `/admin/setup.html` after logging in as `super_admin` and use the provided buttons to install dependencies, initialize the database, run the server, or deploy with Docker Compose.
 
+Deploy frontend to Xneelo FTP
+
+- Run the Xneelo FTP deploy script from the repo root:
+  ```bash
+  bash halo-system/scripts/deploy_xneelo_auto.sh
+  ```
+- Enter the FTP password when prompted or set `FTP_PASS` in your shell.
+- Xneelo is static web hosting only; it should host the frontend website and assets. Backend Node apps must deploy to Railway or another Node-capable host.
+- If the frontend is hosted separately from the backend, set `window.HALO_API_BASE_URL` or `window.HALO_BACKEND_URL` in the frontend pages to your Railway backend URL (for example `https://your-backend.up.railway.app`).
+
+Deploy backend to Railway
+
+- Use the built-in GitHub action in `.github/workflows/deploy-railway.yml`, or run locally with:
+  ```bash
+  bash halo-system/scripts/deploy_railway.sh
+  ```
+- Configure GitHub secrets for Railway deployment: `RAILWAY_TOKEN`, `RAILWAY_PROJECT_NAME`, `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `SUPER_ADMIN_OWNER_EMAIL`, and `JWT_SECRET`.
+- For a combined live update flow that commits local changes, pushes to origin, deploys the frontend to Xneelo, and deploys the backend to Railway, run:
+  ```bash
+  bash halo-system/scripts/auto_update_deploy.sh
+  ```
+
 Deploy to Replit / Render / Other
 
-- You can connect this repository to a service like Replit or Render. Use the `Dockerfile` and `docker-compose.yml` provided to build the container.
+- You can connect this repository to a service like Replit or Render. Use the root `Dockerfile` or `docker-compose.yml` provided to build the container.
 
 Notes and next steps
 

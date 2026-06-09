@@ -19,8 +19,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd halo-system
-          npm ci --production
+          cd halo-system/backend
+          npm install --production
 
       - name: Install Railway CLI
         run: |

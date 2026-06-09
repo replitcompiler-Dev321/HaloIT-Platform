@@ -8,9 +8,11 @@ SSH_DEPLOY_KEY_ENC="deploy_ssh_key.enc"
 SSH_DEPLOY_KEY_PATH="$HOME/.ssh/auto_push_repo_key"
 
 # Backend deployment script path relative to repo root.
+# Railway is the intended backend host for Node apps.
 BACKEND_DEPLOY_SCRIPT="halo-system/scripts/deploy_railway.sh"
 
 # Frontend deployment script path relative to repo root.
+# Xneelo is static web hosting only.
 FRONTEND_DEPLOY_SCRIPT="halo-system/scripts/deploy_xneelo_auto.sh"
 
 # Optional alternate providers can be set here:

@@ -14,6 +14,18 @@ class HaloAPI {
    * Get API base URL based on environment
    */
   getApiBaseUrl() {
+    if (window.HALO_API_BASE_URL) {
+      return window.HALO_API_BASE_URL;
+    }
+
+    if (window.HALO_BACKEND_URL) {
+      return window.HALO_BACKEND_URL;
+    }
+
+    if (typeof window.getHaloApiBaseUrl === 'function') {
+      return window.getHaloApiBaseUrl();
+    }
+
     const host = window.location.hostname;
     const proto = window.location.protocol;
     const isCodespaces = /(?:\.app\.github\.dev|\.github\.dev)$/.test(host);
@@ -22,11 +34,11 @@ class HaloAPI {
       const parts = host.split('-');
       const owner = parts[0];
       const repoPort = parts[1];
-      return `${proto}//3001-${owner}-${repoPort}.app.github.dev`;
+      return `${proto}//3000-${owner}-${repoPort}.app.github.dev`;
     }
 
     if (host === 'localhost' || host === '127.0.0.1') {
-      return 'http://localhost:3001';
+      return `${proto}//localhost:3000`;
     }
 
     return `${proto}//${host}`;
@@ -90,7 +102,19 @@ class HaloAPI {
         throw new Error('Unauthorized. Please log in again.');
       }
 
-      const data = await response.json();
+      const contentType = response.headers.get('content-type') || '';
+      let data;
+
+      if (contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { error: text || `Unexpected response (${response.status})` };
+        }
+      }
 
       if (!response.ok) {
         throw {
@@ -123,9 +147,9 @@ class HaloAPI {
   }
 
   async verifyMFA(mfaCode) {
-    return this.request('/api/auth/mfa/verify', {
+    return this.request('/api/auth/verify-mfa', {
       method: 'POST',
-      body: JSON.stringify({ mfaCode }),
+      body: JSON.stringify({ token: mfaCode }),
     });
   }
 

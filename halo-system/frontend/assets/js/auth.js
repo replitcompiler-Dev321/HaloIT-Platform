@@ -94,8 +94,12 @@ class AuthManager {
     try {
       const response = await haloAPI.login(email, password);
 
-      if (response.mfaRequired) {
-        return { mfaRequired: true, sessionId: response.sessionId };
+      if (response.mfaRequired || response.requiresMFA) {
+        if (response.token) {
+          haloAPI.setToken(response.token);
+        }
+
+        return { mfaRequired: true, sessionId: response.sessionId || response.session_id };
       }
 
       if (response.token) {
@@ -120,8 +124,8 @@ class AuthManager {
 
       if (response.token) {
         haloAPI.setToken(response.token);
-        this.setUser(response.user);
-        return { success: true, user: response.user };
+        const user = await this.refreshProfile();
+        return { success: true, user };
       }
 
       throw new Error('Invalid MFA code');
@@ -149,7 +153,8 @@ class AuthManager {
    */
   async refreshProfile() {
     try {
-      const user = await haloAPI.getProfile();
+      const response = await haloAPI.getProfile();
+      const user = response?.user || response;
       this.setUser(user);
       return user;
     } catch (error) {

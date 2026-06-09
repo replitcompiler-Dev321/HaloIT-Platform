@@ -3,161 +3,438 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Halo System</title>
+  <meta name="description" content="Halo IT Services 365 - Professional Managed IT Services and Support for South African businesses. Reliable IT infrastructure, security, and 24/7 support." />
+  <meta name="keywords" content="managed IT services, IT support, MSP, South Africa, IT consulting" />
+  <title>Halo IT Services 365 - Professional IT Support & Managed Services</title>
+  <link rel="stylesheet" href="/assets/css/shared.css" />
   <style>
-    body { font-family: Arial, sans-serif; margin: 24px; }
-    section { margin-bottom: 24px; }
-    input { padding: 8px; font-size: 1rem; }
-    button { padding: 10px 14px; font-size: 1rem; margin-left: 8px; }
-    pre { background: #f5f5f5; border: 1px solid #ddd; padding: 12px; min-height: 48px; }
-    ul { list-style: none; padding-left: 0; }
-    li { background: #fafafa; border: 1px solid #ddd; padding: 10px; margin-bottom: 8px; }
-    .error { color: #b00; }
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, rgba(102,126,234,0.05), rgba(118,75,162,0.05));
+      padding: 4rem 1rem;
+      text-align: center;
+    }
+
+    .hero .container {
+      max-width: 800px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .hero-subtitle {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
+    }
+
+    /* Feature Sections */
+    .section {
+      padding: 3rem 1rem;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+
+    .section-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin-bottom: 3rem;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    .feature-card {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 2rem;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--primary-color);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+      color: var(--text-primary);
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Stats Section */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 3rem 1rem;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+
+    .stat-item h4 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-item p {
+      font-size: 0.95rem;
+      opacity: 0.95;
+    }
+
+    /* Why Choose Us */
+    .why-choose {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .why-choose h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+    }
+
+    .why-choose ul {
+      list-style: none;
+    }
+
+    .why-choose li {
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      background: var(--light-bg);
+      border-radius: 0.5rem;
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .why-choose li strong {
+      color: var(--primary-color);
+    }
+
+    .why-choose-image {
+      text-align: center;
+      font-size: 5rem;
+      opacity: 0.3;
+    }
+
+    /* CTA Section */
+    .cta-section {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 3rem 1rem;
+      text-align: center;
+      border-radius: 0.75rem;
+      margin: 3rem 0;
+    }
+
+    .cta-section h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .cta-section p {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      opacity: 0.95;
+    }
+
+    .cta-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .cta-actions .btn {
+      padding: 0.875rem 2rem;
+      font-size: 1rem;
+    }
+
+    .cta-actions .btn-white {
+      background: white;
+      color: var(--primary-color);
+    }
+
+    .cta-actions .btn-white:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Testimonials */
+    .testimonial-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+
+    .testimonial-card {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 2rem;
+    }
+
+    .testimonial-text {
+      color: var(--text-secondary);
+      font-style: italic;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    .testimonial-author {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .testimonial-role {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .stars {
+      color: #fbbf24;
+      margin-bottom: 1rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero {
+        padding: 2rem 1rem;
+      }
+
+      .hero h1 {
+        font-size: 1.75rem;
+      }
+
+      .hero-subtitle {
+        font-size: 1rem;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .hero-actions .btn {
+        width: 100%;
+        max-width: 300px;
+      }
+
+      .why-choose {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .section-title {
+        font-size: 1.5rem;
+      }
+
+      .cta-actions {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .cta-actions .btn {
+        width: 100%;
+        max-width: 300px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Halo System</h1>
-  <p><a href="/admin/settings/ai/">AI Settings</a></p>
-
-  <section>
-    <h2>AI Chat</h2>
-    <input id="promptInput" type="text" placeholder="Ask Halo AI..." style="width: 60%;" />
-    <button id="askButton">Send</button>
-    <p><strong>Response:</strong></p>
-    <pre id="aiResponse">No response yet.</pre>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>Secure IT Support Your Business Can Rely On</h1>
+      <p class="hero-subtitle">
+        Halo IT Services 365 provides professional managed IT support, 24/7 monitoring, and strategic technology guidance for South African businesses. Let us handle your IT so you can focus on growth.
+      </p>
+      <div class="hero-actions">
+        <a href="/client-portal/index.html" class="btn btn-primary btn-lg">Access Client Portal</a>
+        <a href="/services.html" class="btn btn-secondary btn-lg">Learn More</a>
+      </div>
+    </div>
   </section>
 
-  <section>
-    <h2>Create Ticket</h2>
-    <input id="ticketInput" type="text" placeholder="Ticket title..." style="width: 60%;" />
-    <button id="createTicketButton">Create Ticket</button>
-    <p id="ticketMessage"></p>
+  <!-- Stats Section -->
+  <section class="section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <h4>500+</h4>
+          <p>Active Clients</p>
+        </div>
+        <div class="stat-item">
+          <h4>99.9%</h4>
+          <p>Uptime Guarantee</p>
+        </div>
+        <div class="stat-item">
+          <h4>24/7</h4>
+          <p>Support Available</p>
+        </div>
+        <div class="stat-item">
+          <h4>10+</h4>
+          <p>Years Experience</p>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <section>
-    <h2>Tickets</h2>
-    <ul id="ticketsList"></ul>
+  <!-- Core Services -->
+  <section class="section" style="background: var(--light-bg);">
+    <div class="container">
+      <h2 class="section-title text-center">Our Core Services</h2>
+      <p class="section-subtitle text-center">Comprehensive IT solutions designed to keep your business running smoothly</p>
+      
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🖥️</div>
+          <h3>24/7 IT Support</h3>
+          <p>Round-the-clock technical support for your team. From troubleshooting to system administration, we've got you covered.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Security & Compliance</h3>
+          <p>Protect your business with security audits, endpoint protection, and compliance management. Stay secure and compliant.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📡</div>
+          <h3>Network Management</h3>
+          <p>Optimize your infrastructure with proactive network monitoring, maintenance, and upgrades.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">☁️</div>
+          <h3>Cloud Solutions</h3>
+          <p>Migrate, manage, and optimize your cloud infrastructure. Reduce costs while improving performance and reliability.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>Backup & Disaster Recovery</h3>
+          <p>Never lose critical data. We implement robust backup and recovery solutions to ensure business continuity.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">👥</div>
+          <h3>IT Consulting</h3>
+          <p>Strategic guidance on technology investments. We help you plan, implement, and optimize your IT roadmap.</p>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <script>
-    const apiBaseUrl = getApiBaseUrl();
+  <!-- Why Choose Us -->
+  <section class="section">
+    <div class="container">
+      <div class="why-choose">
+        <div>
+          <h3>Why Choose Halo IT Services?</h3>
+          <ul>
+            <li><strong>Local Expertise</strong> - South African team who understands your business environment</li>
+            <li><strong>Proactive Support</strong> - We fix issues before they impact your business</li>
+            <li><strong>Transparent Pricing</strong> - No hidden costs. Clear, affordable service packages</li>
+            <li><strong>Rapid Response</strong> - Critical issues responded to within 1 hour</li>
+            <li><strong>Certified Professionals</strong> - Microsoft, CompTIA, and other industry certifications</li>
+            <li><strong>Technology Partners</strong> - Relationships with leading vendors for best solutions</li>
+            <li><strong>Scalable Solutions</strong> - Grow with us as your business evolves</li>
+            <li><strong>Compliance Ready</strong> - POPIA, security standards, and industry requirements</li>
+          </ul>
+        </div>
+        <div class="why-choose-image">
+          🎯
+        </div>
+      </div>
+    </div>
+  </section>
 
-    function getApiBaseUrl() {
-      const host = window.location.hostname;
-      const proto = window.location.protocol;
-      const isCodespaces = /(?:\.app\.github\.dev|\.github\.dev)$/.test(host);
+  <!-- Pricing Teaser -->
+  <section class="section" style="background: var(--light-bg); text-align: center;">
+    <div class="container" style="max-width: 700px;">
+      <h2 class="section-title">Service Packages for Every Business</h2>
+      <p class="section-subtitle">From startups to enterprise, we have a solution that fits your budget and requirements.</p>
+      <a href="/pricing.html" class="btn btn-primary btn-lg">View Pricing</a>
+    </div>
+  </section>
 
-      if (isCodespaces) {
-        return `${proto}//${host.replace(/-(?:5500|3000)(?=\.app\.github\.dev$|\.github\.dev$)/, '-3000')}`;
-      }
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container" style="max-width: 700px;">
+      <h2>Ready to Transform Your IT?</h2>
+      <p>Let's discuss how Halo IT Services can help your business achieve its technology goals.</p>
+      <div class="cta-actions">
+        <a href="/contact.html" class="btn btn-white">Get in Touch</a>
+        <a href="/login.html" class="btn btn-primary">Staff Login</a>
+      </div>
+    </div>
+  </section>
 
-      if (host === 'localhost' || host === '127.0.0.1') {
-        return `${proto}//localhost:3000`;
-      }
+  <!-- Testimonials Teaser -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title text-center mb-4">What Our Clients Say</h2>
+      <div class="testimonial-grid">
+        <div class="testimonial-card">
+          <div class="stars">⭐⭐⭐⭐⭐</div>
+          <p class="testimonial-text">"Halo IT transformed our infrastructure. We went from constant downtime to 99.9% uptime. Highly professional and responsive."</p>
+          <p class="testimonial-author">John Mukwashirwa</p>
+          <p class="testimonial-role">Director, Tech Innovations Inc</p>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars">⭐⭐⭐⭐⭐</div>
+          <p class="testimonial-text">"The support team is fantastic. They understand our business and provide solutions that actually work for us, not just cookie-cutter answers."</p>
+          <p class="testimonial-author">Sarah Thompson</p>
+          <p class="testimonial-role">Operations Manager, Global Finance</p>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars">⭐⭐⭐⭐⭐</div>
+          <p class="testimonial-text">"Best IT decision we made. Cost-effective, reliable, and our security posture improved dramatically. We finally sleep at night!"</p>
+          <p class="testimonial-author">Themba Ndlela</p>
+          <p class="testimonial-role">CEO, Manufacturing Solutions</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-      return `${proto}//${host}:3000`;
-    }
-
-    async function request(path, options = {}) {
-      const response = await fetch(`${apiBaseUrl}${path}`, {
-        headers: { 'Content-Type': 'application/json' },
-        ...options,
-      });
-
-      const body = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(body.error || `HTTP ${response.status}`);
-      }
-
-      return body;
-    }
-
-    async function askAi() {
-      const prompt = document.getElementById('promptInput').value.trim();
-      if (!prompt) {
-        updateAiResponse('Please enter a prompt first.', true);
-        return;
-      }
-
-      try {
-        const data = await request('/ai', {
-          method: 'POST',
-          body: JSON.stringify({ prompt }),
-        });
-        updateAiResponse(data.reply);
-      } catch (error) {
-        updateAiResponse(error.message, true);
-      }
-    }
-
-    async function createTicket() {
-      const title = document.getElementById('ticketInput').value.trim();
-      const messageNode = document.getElementById('ticketMessage');
-      messageNode.textContent = '';
-
-      if (!title) {
-        messageNode.textContent = 'Please enter a ticket title.';
-        messageNode.className = 'error';
-        return;
-      }
-
-      try {
-        await request('/tickets', {
-          method: 'POST',
-          body: JSON.stringify({ title }),
-        });
-        document.getElementById('ticketInput').value = '';
-        messageNode.textContent = 'Ticket created successfully.';
-        messageNode.className = '';
-        loadTickets();
-      } catch (error) {
-        messageNode.textContent = error.message;
-        messageNode.className = 'error';
-      }
-    }
-
-    async function loadTickets() {
-      try {
-        const tickets = await request('/tickets');
-        renderTickets(tickets);
-      } catch (error) {
-        renderTickets([]);
-        const ticketsList = document.getElementById('ticketsList');
-        ticketsList.innerHTML = `<li class="error">Unable to load tickets: ${error.message}</li>`;
-      }
-    }
-
-    function renderTickets(tickets) {
-      const list = document.getElementById('ticketsList');
-      if (!tickets || tickets.length === 0) {
-        list.innerHTML = '<li>No tickets yet.</li>';
-        return;
-      }
-
-      list.innerHTML = tickets
-        .map(
-          (ticket) =>
-            `<li><strong>#${ticket.id}</strong> ${escapeHtml(ticket.title)}<br /><small>${new Date(ticket.createdAt).toLocaleString()}</small></li>`
-        )
-        .join('');
-    }
-
-    function updateAiResponse(message, isError = false) {
-      const responseNode = document.getElementById('aiResponse');
-      responseNode.textContent = message;
-      responseNode.style.color = isError ? '#b00' : '#000';
-    }
-
-    function escapeHtml(text) {
-      return text.replace(/[&<>"]+/g, (match) => {
-        const escape = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
-        return escape[match];
-      });
-    }
-
-    document.getElementById('askButton').addEventListener('click', askAi);
-    document.getElementById('createTicketButton').addEventListener('click', createTicket);
-    window.addEventListener('load', loadTickets);
-  </script>
+  <script src="/assets/js/haloConfig.js"></script>
+  <script src="/assets/js/layout.js"></script>
 </body>
 </html>
