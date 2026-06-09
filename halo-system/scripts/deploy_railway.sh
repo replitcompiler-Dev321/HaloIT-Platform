@@ -1,3 +1,4 @@
+export PATH="$HOME/.railway/bin:$PATH"
 #!/usr/bin/env bash
 set -euo pipefail
 
