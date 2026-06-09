@@ -27,6 +27,7 @@ Use a dedicated Node.js application on cPanel for the backend, and serve the sta
 - The current backend uses SQLite and is suitable for a starter deployment, but a production-grade environment should migrate to MySQL or PostgreSQL.
 - The frontend is currently static HTML/CSS/JS, so it can be served directly from public_html.
 - The backend should ideally be exposed on a subdomain such as api.yourdomain.com.
+- The repo includes `halo-system/scripts/deploy_xneelo_auto.sh` for hardcoded FTP-based frontend and backend sync to Xneelo.
 
 ## cPanel setup steps
 1. Create a Node.js application in cPanel.

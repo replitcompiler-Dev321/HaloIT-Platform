@@ -15,6 +15,40 @@ This repository now contains a working backend foundation for the Halo platform,
 - Public tunnel: https://haloitservices365.loca.lt
 - Main backend root: https://haloitservices365.loca.lt/
 
+### Auto updater script
+Use `./auto_push_origin.sh` from the repository root to commit local changes and push them live to `origin`.
+
+```bash
+cd /workspaces/Haloitservices365
+bash ./auto_push_origin.sh
+```
+
+This script stages all file changes, commits them with a timestamped message, pulls remote updates, and pushes to the current branch on `origin`.
+
+### One-step commit + Xneelo deploy
+Use `deploy_commit_push_xneelo.sh` to commit and push repo changes, then deploy the frontend to Xneelo.
+
+```bash
+cd /workspaces/Haloitservices365
+bash ./deploy_commit_push_xneelo.sh
+```
+
+### Secure SSH deploy key (optional)
+If you want SSH-based auto push from new clones, add an encrypted deploy key file named `deploy_ssh_key.enc` to the repo root.
+
+1. Store the private SSH key locally outside git.
+2. Encrypt it with `encrypt_ssh_key.sh`:
+
+```bash
+cd /workspaces/Haloitservices365
+bash ./encrypt_ssh_key.sh ~/.ssh/id_ed25519_auto_push ./deploy_ssh_key.enc
+```
+
+3. Add the passphrase to your local environment or to GitHub Actions as `DEPLOY_KEY_PASSPHRASE`.
+4. The auto updater will decrypt it on first run and use it for `git push` and `git pull`.
+
+This adds a second authentication layer because the encrypted key file alone is not enough; the passphrase is also required.
+
 ### Project tracking docs
 - Current audit: docs/CURRENT_SYSTEM_AUDIT.md
 - Gap analysis: docs/GAP_ANALYSIS.md

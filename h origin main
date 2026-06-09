@@ -1,0 +1,5 @@
+[33md6a8a4d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;32mrailway-deploy[m[33m)[m Fix Railway workflow for Azure DeepSeek-V4-Pro
+[33m6ef503f[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: add deployment packaging, Azure AI config, and auth recovery flow
+[33m94933b5[m docs: refresh project status and add cPanel hosting guide
+[33ma827a2f[m Add Phase 5 Summary - Frontend website and integrated portals complete
+[33mdcf291c[m Phase 5: Complete frontend website with admin dashboard and client portal

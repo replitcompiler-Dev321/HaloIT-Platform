@@ -22,7 +22,16 @@ cd halo-system
 ./scripts/upload_xneelo.sh ./frontend
 ```
 
+Optional automatic deploy using hardcoded credentials:
+
+```bash
+cd halo-system
+bash ./scripts/deploy_xneelo_auto.sh
+```
+
 Notes
-- The script mirrors `./frontend` to the remote `public_html` by default and deletes remote files not present locally.
+- The `upload_xneelo.sh` script mirrors `./frontend` to the remote `public_html` by default and deletes remote files not present locally.
+- The `deploy_xneelo_auto.sh` script also uploads `./backend` to a hardcoded remote folder (`halo-backend`) in addition to the frontend.
 - If you prefer GUI, use FileZilla: connect with the same host/user/pass and upload the contents of `halo-system/frontend` into `public_html`.
-- Do NOT commit credentials into git. Unset sensitive env vars after use: `unset FTP_PASS`.
+- Do NOT commit credentials into git unless you intend to hardcode them explicitly in a deployment helper script.
+- Unset sensitive env vars after use: `unset FTP_PASS`.
