@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Halo IT Services 365 - Client Portal</title>
+  <link rel="stylesheet" href="/assets/css/style.css" />
+  <style>
+    .portal-container { display: flex; min-height: 100vh; background: var(--light-bg); }
+    .portal-sidebar { background: white; width: 250px; border-right: 1px solid var(--border-color); padding: 1.5rem; position: fixed; height: 100vh; overflow-y: auto; }
+    .portal-main { margin-left: 250px; width: calc(100% - 250px); }
+    .portal-header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; }
+    .portal-nav-link { display: block; padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 4px; color: var(--text-secondary); text-decoration: none; transition: all 0.3s; }
+    .portal-nav-link:hover, .portal-nav-link.active { background: var(--light-bg); color: var(--primary-color); }
+    .action-btn { margin-bottom: 1rem; }
+    .empty-state { text-align: center; padding: 2rem; color: var(--text-secondary); }
+    .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .ticket-card { background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem; border-left: 4px solid var(--primary-color); }
+    .ticket-card.open { border-left-color: var(--info-color); }
+    .ticket-card.in-progress { border-left-color: var(--warning-color); }
+    .ticket-card.closed { border-left-color: var(--success-color); }
+    .ticket-id { font-weight: 600; color: var(--primary-color); }
+    .ticket-meta { font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem; }
+    
+    @media (max-width: 768px) {
+      .portal-sidebar { width: 100%; position: relative; height: auto; margin-bottom: 1rem; }
+      .portal-main { margin-left: 0; width: 100%; }
+      .portal-nav-link { display: inline-block; margin-right: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <!-- Sidebar -->
+    <nav class="portal-sidebar">
+      <div style="margin-bottom: 2rem;">
+        <div style="font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">🚀 Halo</div>
+        <small style="color: var(--text-secondary);">Client Portal</small>
+      </div>
+
+      <button class="btn btn-primary action-btn" style="width: 100%;" onclick="switchPortalView('submit')">
+        + New Support Request
+      </button>
+
+      <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
+        <a href="#" class="portal-nav-link active" onclick="switchPortalView('dashboard')">
+          📊 Dashboard
+        </a>
+        <a href="#" class="portal-nav-link" onclick="switchPortalView('tickets')">
+          🎫 My Tickets
+        </a>
+        <a href="#" class="portal-nav-link" onclick="switchPortalView('knowledge')">
+          📚 Knowledge Base
+        </a>
+        <a href="#" class="portal-nav-link" onclick="switchPortalView('profile')">
+          👤 My Profile
+        </a>
+      </div>
+
+      <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 2rem;">
+        <button class="btn btn-sm btn-secondary" style="width: 100%;" onclick="handlePortalLogout()">
+          Logout
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="portal-main">
+      <!-- Header -->
+      <div class="portal-header">
+        <div class="container">
+          <h1 id="portalPageTitle">Welcome to Your Portal</h1>
+          <p id="portalUserGreeting" style="opacity: 0.9; margin: 0.5rem 0 0;">Manage your support requests and track their status</p>
+        </div>
+      </div>
+
+      <div class="container" style="padding: 2rem 1rem;">
+        <!-- Dashboard View -->
+        <div id="dashboardPortalView" class="portal-view">
+          <div class="row">
+            <div class="col-4">
+              <div class="card text-center">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">🎫</div>
+                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-color);" id="totalTickets">-</div>
+                <div style="color: var(--text-secondary); margin-top: 0.5rem;">Total Requests</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="card text-center">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                <div style="font-size: 2rem; font-weight: 700; color: var(--warning-color);" id="openTickets">-</div>
+                <div style="color: var(--text-secondary); margin-top: 0.5rem;">Open Requests</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="card text-center">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">✅</div>
+                <div style="font-size: 2rem; font-weight: 700; color: var(--success-color);" id="resolvedTickets">-</div>
+                <div style="color: var(--text-secondary); margin-top: 0.5rem;">Resolved</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 2rem;">
+            <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">Recent Requests</h2>
+            <div id="recentTicketsList">
+              <div class="empty-state">
+                <div class="empty-state-icon">🎫</div>
+                <p>No support requests yet</p>
+                <button class="btn btn-primary" onclick="switchPortalView('submit')">Submit Your First Request</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Ticket View -->
+        <div id="submitPortalView" class="portal-view" style="display: none;">
+          <div class="card" style="max-width: 600px;">
+            <div class="card-header">
+              <h3>Submit a Support Request</h3>
+            </div>
+            <form onsubmit="handleSubmitTicket(event)" class="card-body">
+              <div class="form-group">
+                <label for="ticketTitle">Subject *</label>
+                <input type="text" id="ticketTitle" name="title" placeholder="Brief description of your issue" required />
+              </div>
+
+              <div class="form-group">
+                <label for="ticketCategory">Category *</label>
+                <select id="ticketCategory" name="category" required>
+                  <option value="">Select a category</option>
+                  <option value="technical">Technical Support</option>
+                  <option value="billing">Billing</option>
+                  <option value="account">Account & Access</option>
+                  <option value="general">General Inquiry</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="ticketPriority">Priority *</label>
+                <select id="ticketPriority" name="priority" required>
+                  <option value="">Select priority</option>
+                  <option value="low">Low - Not urgent</option>
+                  <option value="medium">Medium - Standard</option>
+                  <option value="high">High - Important</option>
+                  <option value="critical">Critical - Business impacting</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="ticketDescription">Description *</label>
+                <textarea id="ticketDescription" name="description" placeholder="Provide detailed information about your issue" required></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="ticketAttachment">Attachment (Optional)</label>
+                <input type="file" id="ticketAttachment" name="attachment" />
+              </div>
+
+              <button type="submit" class="btn btn-primary">Submit Request</button>
+              <button type="button" class="btn btn-secondary" onclick="switchPortalView('dashboard')" style="margin-left: 0.5rem;">Cancel</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- My Tickets View -->
+        <div id="ticketsPortalView" class="portal-view" style="display: none;">
+          <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem;">Your Support Requests</h2>
+          
+          <div style="margin-bottom: 1rem;">
+            <label style="margin-right: 1rem;">
+              <input type="radio" name="ticketFilter" value="all" checked onchange="filterTickets('all')" /> All
+            </label>
+            <label style="margin-right: 1rem;">
+              <input type="radio" name="ticketFilter" value="open" onchange="filterTickets('open')" /> Open
+            </label>
+            <label style="margin-right: 1rem;">
+              <input type="radio" name="ticketFilter" value="closed" onchange="filterTickets('closed')" /> Closed
+            </label>
+          </div>
+
+          <div id="ticketsList">
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <p>No support requests found</p>
+              <button class="btn btn-primary" onclick="switchPortalView('submit')">Create a New Request</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile View -->
+        <div id="profilePortalView" class="portal-view" style="display: none;">
+          <div class="card" style="max-width: 600px;">
+            <div class="card-header">
+              <h3>Your Profile</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="profileName" readonly />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="profileEmail" readonly />
+              </div>
+              <div class="form-group">
+                <label>Company</label>
+                <input type="text" id="profileCompany" />
+              </div>
+              <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" id="profilePhone" />
+              </div>
+              <button class="btn btn-primary" onclick="updateProfile()">Update Profile</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Knowledge Base -->
+        <div id="knowledgePortalView" class="portal-view" style="display: none;">
+          <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem;">Knowledge Base & FAQs</h2>
+          
+          <div class="row">
+            <div class="col-6">
+              <div class="card" style="cursor: pointer;" onclick="expandKBArticle(1)">
+                <div style="font-size: 1.5rem;">❓</div>
+                <h4>Getting Started</h4>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Quick start guide and basic setup instructions</p>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="card" style="cursor: pointer;" onclick="expandKBArticle(2)">
+                <div style="font-size: 1.5rem;">🔧</div>
+                <h4>Troubleshooting</h4>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Common issues and how to resolve them</p>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="card" style="cursor: pointer;" onclick="expandKBArticle(3)">
+                <div style="font-size: 1.5rem;">🔐</div>
+                <h4>Security & Passwords</h4>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Password management and security best practices</p>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="card" style="cursor: pointer;" onclick="expandKBArticle(4)">
+                <div style="font-size: 1.5rem;">💳</div>
+                <h4>Billing & Payments</h4>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Billing information and payment methods</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/utils.js"></script>
+
+  <script>
+    // Check authentication
+    document.addEventListener('DOMContentLoaded', async () => {
+      authManager.requireAuth();
+      const user = authManager.getUser();
+      
+      if (!authManager.isClient() && !authManager.isAdmin()) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      document.getElementById('profileName').value = user?.display_name || '';
+      document.getElementById('profileEmail').value = user?.email || '';
+      
+      const hour = new Date().getHours();
+      const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+      document.getElementById('portalUserGreeting').textContent = 
+        `${greeting}, ${user?.display_name || 'Guest'}! Manage your support requests here.`;
+
+      await loadPortalDashboard();
+    });
+
+    async function loadPortalDashboard() {
+      try {
+        const user = authManager.getUser();
+        const tickets = await haloAPI.getClientTickets(user?.id || 'me');
+        
+        const open = tickets.filter(t => t.status !== 'closed').length;
+        const closed = tickets.filter(t => t.status === 'closed').length;
+
+        document.getElementById('totalTickets').textContent = tickets.length;
+        document.getElementById('openTickets').textContent = open;
+        document.getElementById('resolvedTickets').textContent = closed;
+
+        // Display recent tickets
+        const recentTickets = tickets.slice(0, 3);
+        const ticketsList = document.getElementById('recentTicketsList');
+        
+        if (recentTickets.length === 0) {
+          ticketsList.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">🎫</div>
+              <p>No support requests yet</p>
+              <button class="btn btn-primary" onclick="switchPortalView('submit')">Submit Your First Request</button>
+            </div>
+          `;
+        } else {
+          ticketsList.innerHTML = recentTickets.map(ticket => `
+            <div class="ticket-card ${ticket.status}">
+              <div class="ticket-id">#${ticket.id} - ${ticket.title}</div>
+              <p style="margin: 0.5rem 0;">${ticket.description}</p>
+              <div class="ticket-meta">
+                <span class="badge ${DataFormatter.getStatusBadgeClass(ticket.status)}">
+                  ${DataFormatter.capitalize(ticket.status)}
+                </span>
+                <span style="margin-left: 1rem;">Updated ${DataFormatter.formatRelativeTime(ticket.updatedAt)}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Failed to load portal data:', error);
+        UIUtils.showToast('Failed to load your requests', 'error');
+      }
+    }
+
+    function switchPortalView(view) {
+      document.querySelectorAll('.portal-view').forEach(el => el.style.display = 'none');
+      document.getElementById(view + 'PortalView').style.display = 'block';
+      
+      document.querySelectorAll('.portal-nav-link').forEach(el => el.classList.remove('active'));
+      event.target.closest('.portal-nav-link')?.classList.add('active');
+
+      const titles = {
+        dashboard: 'Dashboard',
+        tickets: 'My Support Requests',
+        submit: 'Submit a New Request',
+        knowledge: 'Knowledge Base & FAQs',
+        profile: 'My Profile',
+      };
+      document.getElementById('portalPageTitle').textContent = titles[view] || 'Dashboard';
+    }
+
+    async function handleSubmitTicket(event) {
+      event.preventDefault();
+      
+      const title = document.getElementById('ticketTitle').value;
+      const description = document.getElementById('ticketDescription').value;
+      const priority = document.getElementById('ticketPriority').value;
+      const category = document.getElementById('ticketCategory').value;
+
+      try {
+        const user = authManager.getUser();
+        const result = await haloAPI.submitClientTicket(user?.id || 'me', {
+          title,
+          description,
+          priority,
+          category,
+          status: 'open',
+        });
+
+        UIUtils.showToast('Support request submitted successfully!', 'success');
+        UIUtils.clearForm('ticketTitle');
+        UIUtils.clearForm('ticketDescription');
+        
+        setTimeout(() => {
+          switchPortalView('tickets');
+        }, 1500);
+      } catch (error) {
+        UIUtils.showToast(
+          error.message || 'Failed to submit request',
+          'error'
+        );
+      }
+    }
+
+    function filterTickets(filter) {
+      // Implementation for filtering tickets
+      console.log('Filtering tickets by:', filter);
+    }
+
+    function updateProfile() {
+      UIUtils.showToast('Profile updated successfully', 'success');
+    }
+
+    function expandKBArticle(id) {
+      UIUtils.showToast('Opening article ' + id, 'info', 2000);
+    }
+
+    async function handlePortalLogout(e) {
+      if (e) e.preventDefault();
+      try {
+        await authManager.logout();
+        window.location.href = '/login.html';
+      } catch (error) {
+        authManager.clearUser();
+        window.location.href = '/login.html';
+      }
+    }
+  </script>
+</body>
+</html>

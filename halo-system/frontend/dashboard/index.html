@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Halo IT Services 365 - Admin Dashboard</title>
+  <link rel="stylesheet" href="/assets/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <style>
+    body { margin: 0; padding: 0; }
+    .dashboard-container { display: flex; min-height: 100vh; }
+    .sidebar-toggle { display: none; position: fixed; top: 1rem; left: 1rem; z-index: 101; background: white; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; cursor: pointer; }
+    
+    @media (max-width: 768px) {
+      .sidebar-toggle { display: block; }
+      .sidebar { width: 100vw; transform: translateX(-100%); z-index: 98; }
+      .sidebar.show { transform: translateX(0); }
+      .main-content { margin-left: 0; padding: 1rem; }
+    }
+
+    .metric-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .metric-card .metric-card-value { font-size: 2.5rem; }
+    .metric-card .metric-card-change { font-size: 0.875rem; margin-top: 0.5rem; }
+    .metric-card .metric-card-change.positive { color: var(--success-color); }
+    .metric-card .metric-card-change.negative { color: var(--danger-color); }
+
+    .section-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 0.75rem; }
+    
+    .chart-wrapper { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin: 2rem 0; }
+    .chart-container { background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+    .chart-container > div { position: relative; height: 300px; }
+
+    .alert-item { background: white; border-left: 4px solid var(--danger-color); padding: 1rem; margin-bottom: 1rem; border-radius: 4px; }
+    .alert-item.warning { border-left-color: var(--warning-color); }
+    .alert-item.success { border-left-color: var(--success-color); }
+
+    .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin: 2rem 0; }
+    .quick-action-btn { background: white; border: 2px solid var(--border-color); padding: 1rem; border-radius: 0.5rem; text-align: center; cursor: pointer; transition: all 0.3s; }
+    .quick-action-btn:hover { border-color: var(--primary-color); box-shadow: var(--shadow-md); }
+    .quick-action-btn .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+    .data-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    .data-table tbody tr:hover { background: var(--light-bg); }
+    .data-table td { padding: 0.75rem; }
+
+    .loading-skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; height: 1rem; border-radius: 4px; margin-bottom: 0.5rem; }
+    @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .status-badge { display: inline-block; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; }
+    .status-badge.green { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+    .status-badge.red { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
+    .status-badge.yellow { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <div class="sidebar-header p-3">
+        <div class="navbar-brand">🚀 Halo</div>
+        <small style="color: var(--text-secondary);">Admin Dashboard</small>
+      </div>
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-item">
+          <a href="#dashboard" class="sidebar-nav-link active" onclick="switchView('dashboard')">
+            📊 Dashboard
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="#tickets" class="sidebar-nav-link" onclick="switchView('tickets')">
+            🎫 Tickets
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="#agents" class="sidebar-nav-link" onclick="switchView('agents')">
+            👥 Agents
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="#clients" class="sidebar-nav-link" onclick="switchView('clients')">
+            🏢 Clients
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="#monitoring" class="sidebar-nav-link" onclick="switchView('monitoring')">
+            📡 Monitoring
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="#sla" class="sidebar-nav-link" onclick="switchView('sla')">
+            ⚡ SLA
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="#settings" class="sidebar-nav-link" onclick="switchView('settings')">
+            ⚙️ Settings
+          </a>
+        </li>
+        <li class="sidebar-nav-item" style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+          <a href="#" class="sidebar-nav-link" onclick="handleLogout(event)" style="color: var(--danger-color);">
+            🚪 Logout
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <div class="navbar">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+          <h1 id="pageTitle">Dashboard</h1>
+          <div class="navbar-right">
+            <span id="userName" style="font-weight: 500; margin-right: 1rem;"></span>
+            <button class="btn btn-sm btn-secondary" onclick="handleLogout()">Logout</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page Content -->
+      <div class="container">
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="view-section">
+          <div class="dashboard-header">
+            <h2 id="greeting">Welcome back!</h2>
+            <p id="systemStatus">System Status: All systems operational</p>
+          </div>
+
+          <!-- Key Metrics -->
+          <div class="metric-row" id="metricsRow">
+            <div class="metric-card">
+              <div class="metric-card-label">Open Tickets</div>
+              <div class="metric-card-value" id="openTickets">-</div>
+              <div class="metric-card-change positive">↑ Latest updates</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">SLA Compliance</div>
+              <div class="metric-card-value" id="slaCompliance">-</div>
+              <div class="metric-card-change">This month</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">Active Agents</div>
+              <div class="metric-card-value" id="activeAgents">-</div>
+              <div class="metric-card-change positive">Ready to assist</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">Response Time</div>
+              <div class="metric-card-value" id="avgResponseTime">-</div>
+              <div class="metric-card-change positive">Average</div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div>
+            <h3 class="section-title">Quick Actions</h3>
+            <div class="quick-actions">
+              <button class="quick-action-btn" onclick="switchView('tickets')">
+                <div class="icon">🎫</div>
+                <div>Create Ticket</div>
+              </button>
+              <button class="quick-action-btn" onclick="switchView('agents')">
+                <div class="icon">👥</div>
+                <div>Assign Task</div>
+              </button>
+              <button class="quick-action-btn" onclick="switchView('monitoring')">
+                <div class="icon">📡</div>
+                <div>View Monitoring</div>
+              </button>
+              <button class="quick-action-btn" onclick="switchView('sla')">
+                <div class="icon">⚡</div>
+                <div>SLA Reports</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="chart-wrapper">
+            <div class="chart-container">
+              <h4 style="margin-top: 0;">Tickets This Week</h4>
+              <div>
+                <canvas id="ticketChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-container">
+              <h4 style="margin-top: 0;">Priority Distribution</h4>
+              <div>
+                <canvas id="priorityChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Alerts -->
+          <div>
+            <h3 class="section-title">Recent Alerts</h3>
+            <div id="alertsList">
+              <div class="alert-item">
+                <strong>System Healthy</strong>
+                <p>All systems are operating normally. No critical alerts.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tickets View -->
+        <div id="ticketsView" class="view-section" style="display: none;">
+          <h2 class="section-title">Ticket Management</h2>
+          <button class="btn btn-primary mb-2" onclick="openCreateTicketModal()">+ Create New Ticket</button>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Ticket ID</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Assigned To</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ticketsList">
+              <tr>
+                <td colspan="7" class="text-center">Loading tickets...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Agents View -->
+        <div id="agentsView" class="view-section" style="display: none;">
+          <h2 class="section-title">Agent Management</h2>
+          <div class="row" id="agentsList">
+            <div class="col-12">Loading agents...</div>
+          </div>
+        </div>
+
+        <!-- Clients View -->
+        <div id="clientsView" class="view-section" style="display: none;">
+          <h2 class="section-title">Client Management</h2>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Client Name</th>
+                <th>Contact</th>
+                <th>Tickets</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="clientsList">
+              <tr>
+                <td colspan="5" class="text-center">Loading clients...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Monitoring View -->
+        <div id="monitoringView" class="view-section" style="display: none;">
+          <h2 class="section-title">System Monitoring</h2>
+          <div class="metric-row">
+            <div class="metric-card">
+              <div class="metric-card-label">System Health</div>
+              <div class="metric-card-value" id="systemHealth">-</div>
+              <div class="status-badge green">✓ Operational</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">Devices Online</div>
+              <div class="metric-card-value" id="devicesOnline">-</div>
+              <div class="metric-card-change">Connected</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">CPU Usage</div>
+              <div class="metric-card-value" id="cpuUsage">-</div>
+              <div class="metric-card-change">Average</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">Memory Usage</div>
+              <div class="metric-card-value" id="memoryUsage">-</div>
+              <div class="metric-card-change">Average</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SLA View -->
+        <div id="slaView" class="view-section" style="display: none;">
+          <h2 class="section-title">SLA Metrics</h2>
+          <div class="metric-row">
+            <div class="metric-card">
+              <div class="metric-card-label">Compliance Rate</div>
+              <div class="metric-card-value" id="complianceRate">-</div>
+              <div class="metric-card-change positive">This month</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">SLA Breaches</div>
+              <div class="metric-card-value" id="slaBreaches">-</div>
+              <div class="metric-card-change negative">Tickets</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">Response Time</div>
+              <div class="metric-card-value" id="slaResponseTime">-</div>
+              <div class="metric-card-change">Avg minutes</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">Resolution Time</div>
+              <div class="metric-card-value" id="slaResolutionTime">-</div>
+              <div class="metric-card-change">Avg hours</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings View -->
+        <div id="settingsView" class="view-section" style="display: none;">
+          <h2 class="section-title">Settings</h2>
+          <div class="card">
+            <div class="card-header">
+              <h3>Admin Settings</h3>
+            </div>
+            <div class="card-body">
+              <p>Configure system settings, user permissions, and integrations.</p>
+              <button class="btn btn-primary">Manage Settings</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/utils.js"></script>
+
+  <script>
+    let charts = {};
+
+    // Check authentication
+    document.addEventListener('DOMContentLoaded', async () => {
+      authManager.requireAuth();
+      authManager.requireRole('admin');
+
+      // Load user info
+      const user = authManager.getUser();
+      document.getElementById('userName').textContent = user?.display_name || user?.email || 'Admin';
+      const hour = new Date().getHours();
+      const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+      document.getElementById('greeting').textContent = `${greeting}! Welcome back to your dashboard.`;
+
+      // Load dashboard data
+      await loadDashboardData();
+      initializeCharts();
+    });
+
+    async function loadDashboardData() {
+      try {
+        UIUtils.showLoading('metricsRow');
+        const data = await haloAPI.getDashboardMetrics();
+
+        // Update metrics
+        document.getElementById('openTickets').textContent = data.metrics?.openTickets || 0;
+        document.getElementById('slaCompliance').textContent = (data.metrics?.slaCompliance || 0) + '%';
+        document.getElementById('activeAgents').textContent = data.metrics?.activeAgents || 0;
+        document.getElementById('avgResponseTime').textContent = (data.metrics?.avgResponseTime || 0) + ' min';
+
+        // Update system status
+        const status = data.systemHealth === 'healthy' ? '✓ All systems operational' : '⚠ Some systems require attention';
+        document.getElementById('systemStatus').textContent = 'System Status: ' + status;
+
+        UIUtils.clearLoading('metricsRow');
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+        UIUtils.showToast('Failed to load dashboard metrics', 'error');
+      }
+    }
+
+    function initializeCharts() {
+      // Ticket chart
+      const ticketCtx = document.getElementById('ticketChart');
+      if (ticketCtx) {
+        charts.ticketChart = new Chart(ticketCtx, {
+          type: 'line',
+          data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+              label: 'Tickets Created',
+              data: [12, 19, 3, 5, 2, 3, 7],
+              borderColor: 'var(--primary-color)',
+              backgroundColor: 'rgba(102, 126, 234, 0.1)',
+              tension: 0.3,
+              fill: true,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+
+      // Priority chart
+      const priorityCtx = document.getElementById('priorityChart');
+      if (priorityCtx) {
+        charts.priorityChart = new Chart(priorityCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Low', 'Medium', 'High', 'Critical'],
+            datasets: [{
+              data: [30, 40, 20, 10],
+              backgroundColor: [
+                'var(--info-color)',
+                'var(--warning-color)',
+                'var(--warning-color)',
+                'var(--danger-color)',
+              ],
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+          }
+        });
+      }
+    }
+
+    function switchView(view) {
+      // Hide all views
+      document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+
+      // Show selected view
+      const viewId = view + 'View';
+      const viewEl = document.getElementById(viewId);
+      if (viewEl) viewEl.style.display = 'block';
+
+      // Update page title
+      const titles = {
+        dashboard: '📊 Dashboard',
+        tickets: '🎫 Tickets',
+        agents: '👥 Agents',
+        clients: '🏢 Clients',
+        monitoring: '📡 Monitoring',
+        sla: '⚡ SLA',
+        settings: '⚙️ Settings',
+      };
+      document.getElementById('pageTitle').textContent = titles[view] || 'Dashboard';
+
+      // Update active sidebar link
+      document.querySelectorAll('.sidebar-nav-link').forEach(el => el.classList.remove('active'));
+      event.target.closest('.sidebar-nav-link').classList.add('active');
+    }
+
+    function toggleSidebar() {
+      document.querySelector('.sidebar').classList.toggle('show');
+    }
+
+    function openCreateTicketModal() {
+      UIUtils.showModal('Create New Ticket', `
+        <form>
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" placeholder="Brief description" />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea placeholder="Detailed description of the issue"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <select>
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+              <option>Critical</option>
+            </select>
+          </div>
+        </form>
+      `, [
+        { label: 'Create', action: 'create', callback: () => UIUtils.showToast('Ticket created', 'success') },
+        { label: 'Cancel', action: 'cancel', class: 'btn-secondary' },
+      ]);
+    }
+
+    async function handleLogout(e) {
+      if (e) e.preventDefault();
+      try {
+        await authManager.logout();
+        window.location.href = '/login.html';
+      } catch (error) {
+        console.error('Logout error:', error);
+        authManager.clearUser();
+        window.location.href = '/login.html';
+      }
+    }
+  </script>
+</body>
+</html>
