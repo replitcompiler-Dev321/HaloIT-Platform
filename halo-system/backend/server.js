@@ -34,10 +34,15 @@ const port = process.env.PORT || 3000;
 
 // Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  credentials: true,
-}));
+
+const corsOrigin = process.env.CORS_ORIGIN || '*';
+const corsOptions = {
+  origin: corsOrigin === '*' ? true : corsOrigin,
+  credentials: corsOrigin && corsOrigin !== '*' ? true : false,
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+};
+app.use(cors(corsOptions));
 
 // Serve frontend assets and admin UI
 app.use(express.static(path.join(__dirname, '../frontend')));
@@ -52,7 +57,7 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cookieParser());
 
 // Health check endpoint
-app.get('/', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     message: 'Halo Backend Running - Phase 1 Core Platform',

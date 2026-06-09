@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Halo IT Services 365 - MFA Verification</title>
+  <link rel="stylesheet" href="/assets/css/style.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      color: white;
+    }
+    .mfa-container {
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 1rem;
+      max-width: 420px;
+      width: 100%;
+      padding: 2rem;
+      color: #111827;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    }
+    .mfa-container h1 {
+      margin-bottom: 1rem;
+      font-size: 1.75rem;
+      color: #111827;
+    }
+    .mfa-container p {
+      color: #4b5563;
+      margin-bottom: 1.5rem;
+    }
+    .mfa-container input {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    .mfa-container button {
+      width: 100%;
+    }
+    .message {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #dc2626;
+    }
+  </style>
+</head>
+<body>
+  <div class="mfa-container">
+    <h1>Verify MFA</h1>
+    <p>Enter the 6-digit code from your authenticator app to complete login.</p>
+
+    <div class="form-group">
+      <label for="mfaCode">MFA Code</label>
+      <input id="mfaCode" type="text" maxlength="6" placeholder="123456" autocomplete="one-time-code" />
+    </div>
+
+    <button class="btn btn-primary" id="verifyButton">Verify code</button>
+    <div id="mfaMessage" class="message"></div>
+    <p style="margin-top: 1rem; font-size: 0.9rem; color: #6b7280;">If you do not have an MFA code, sign in again and verify your account settings.</p>
+  </div>
+
+  <script src="/assets/js/haloConfig.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script>
+    const messageEl = document.getElementById('mfaMessage');
+    const verifyButton = document.getElementById('verifyButton');
+
+    function showMessage(text, error = true) {
+      messageEl.textContent = text;
+      messageEl.style.color = error ? '#dc2626' : '#10b981';
+    }
+
+    if (!haloAPI.getToken()) {
+      showMessage('No active login session found. Redirecting to login...', true);
+      setTimeout(() => {
+        window.location.href = '/login.html';
+      }, 1500);
+    }
+
+    verifyButton.addEventListener('click', async () => {
+      const code = document.getElementById('mfaCode').value.trim();
+      if (!code || code.length !== 6) {
+        showMessage('Enter the 6-digit code from your authenticator app.');
+        return;
+      }
+
+      verifyButton.disabled = true;
+      verifyButton.textContent = 'Verifying...';
+      showMessage('');
+
+      try {
+        const result = await authManager.verifyMFA(code);
+        if (result.success) {
+          showMessage('MFA verification successful. Redirecting...', false);
+          setTimeout(() => {
+            window.location.href = '/dashboard.html';
+          }, 1200);
+          return;
+        }
+
+        showMessage('Unable to verify MFA. Please try again.');
+      } catch (err) {
+        showMessage(err.message || 'Verification failed.');
+      } finally {
+        verifyButton.disabled = false;
+        verifyButton.textContent = 'Verify code';
+      }
+    });
+  </script>
+</body>
+</html>

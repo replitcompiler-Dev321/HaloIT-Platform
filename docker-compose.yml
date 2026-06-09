@@ -2,12 +2,13 @@ version: '3.8'
 services:
   halo:
     build:
-      context: ./halo-system
+      context: .
+      dockerfile: Dockerfile
     container_name: halo-system
     ports:
       - "3000:3000"
     volumes:
-      - ./halo-system:/app
+      - ./halo-system/backend:/app
     environment:
       - NODE_ENV=production
       - PORT=3000

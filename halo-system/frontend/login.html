@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Halo IT Services 365 - Login</title>
-  <link rel="stylesheet" href="/assets/css/style.css" />
+  <link rel="stylesheet" href="/assets/css/shared.css" />
   <style>
     body {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -287,9 +287,11 @@
     </div>
   </div>
 
+  <script src="/assets/js/haloConfig.js"></script>
   <script src="/assets/js/api.js"></script>
   <script src="/assets/js/auth.js"></script>
   <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/layout.js"></script>
 
   <script>
     // Handle login form submission
@@ -322,7 +324,7 @@
 
         UIUtils.showToast('Welcome back! Redirecting...', 'success', 1500);
         setTimeout(() => {
-          window.location.href = '/dashboard/index.html';
+          window.location.href = '/dashboard.html';
         }, 1000);
       } catch (error) {
         UIUtils.showToast(
@@ -382,7 +384,7 @@
 
         UIUtils.showToast('Account created successfully!', 'success', 1500);
         setTimeout(() => {
-          window.location.href = '/client-portal/index.html';
+          window.location.href = '/client-portal.html';
         }, 1000);
       } catch (error) {
         UIUtils.showToast(
@@ -423,8 +425,7 @@
     // Redirect if already logged in
     document.addEventListener('DOMContentLoaded', () => {
       if (authManager.isLoggedIn()) {
-        window.location.href = authManager.isClient() ? 
-          '/client-portal/index.html' : '/dashboard/index.html';
+        window.location.href = authManager.isClient() ? '/client-portal.html' : '/dashboard.html';
       }
     });
   </script>

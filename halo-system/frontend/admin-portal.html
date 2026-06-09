@@ -4,9 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Halo IT Services 365 - Super Admin Portal</title>
-  <link rel="stylesheet" href="/assets/css/style.css" />
+  <link rel="stylesheet" href="/assets/css/shared.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="/assets/js/haloConfig.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/auth.js"></script>
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0d1117; color: #c9d1d9; }
@@ -83,6 +86,10 @@
   </style>
 </head>
 <body>
+  <script src="/assets/js/haloConfig.js"></script>
+  <script>
+    const API_BASE_URL = window.HALO_API_BASE_URL || window.HALO_BACKEND_URL || (typeof window.getHaloApiBaseUrl === 'function' ? window.getHaloApiBaseUrl() : `${window.location.protocol}//${window.location.hostname}`);
+  </script>
   <div class="admin-container">
     <!-- Sidebar -->
     <nav class="admin-sidebar">
@@ -421,7 +428,7 @@
       output.innerHTML += `<div class="terminal-line"><span style="color: #7ee787;">$</span> ${cmd}</div>`;
       
       // Send to backend terminal
-      fetch('/api/admin/terminal', {
+      fetch(`${API_BASE_URL}/api/admin/terminal`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ command: cmd }),
@@ -448,7 +455,7 @@
       const result = document.getElementById('sqlResult');
       
       try {
-        const response = await fetch('/api/admin/sql', {
+        const response = await fetch(`${API_BASE_URL}/api/admin/sql`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ query }),
@@ -463,7 +470,7 @@
     async function executeSQLDirect(query) {
       const result = document.getElementById('sqlResult');
       try {
-        const response = await fetch('/api/admin/sql', {
+        const response = await fetch(`${API_BASE_URL}/api/admin/sql`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ query }),
@@ -485,7 +492,7 @@
 
     async function enableExpansion(expansionId) {
       try {
-        const response = await fetch(`/api/admin/expansions/${expansionId}/enable`, {
+        const response = await fetch(`${API_BASE_URL}/api/admin/expansions/${expansionId}/enable`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
         });
@@ -513,7 +520,7 @@
       response.innerHTML = '<div style="color: #7ee787;">Generating code...</div>';
       
       try {
-        const result = await fetch('/api/admin/ai/code', {
+        const result = await fetch(`${API_BASE_URL}/api/admin/ai/code`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt }),
@@ -531,7 +538,7 @@
       response.innerHTML = '<div style="color: #7ee787;">Analyzing SQL...</div>';
       
       try {
-        const result = await fetch('/api/admin/ai/sql', {
+        const result = await fetch(`${API_BASE_URL}/api/admin/ai/sql`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt }),
@@ -549,7 +556,7 @@
       response.innerHTML = '<div style="color: #7ee787;">Generating recommendations...</div>';
       
       try {
-        const result = await fetch('/api/admin/ai/feature', {
+        const result = await fetch(`${API_BASE_URL}/api/admin/ai/feature`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt }),
@@ -570,7 +577,7 @@
       }
 
       try {
-        const result = await fetch('/api/admin/ai/config', {
+        const result = await fetch(`${API_BASE_URL}/api/admin/ai/config`, {
           method: 'PUT',
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -584,7 +591,7 @@
 
     async function loadExpansionCenter() {
       try {
-        const result = await fetch('/api/admin/expansions', {
+        const result = await fetch(`${API_BASE_URL}/api/admin/expansions`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         });
         const data = await result.json();
@@ -607,7 +614,7 @@
 
     async function loadAiSettings() {
       try {
-        const response = await fetch('/api/admin/ai/settings', {
+        const response = await fetch(`${API_BASE_URL}/api/admin/ai/settings`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         });
         const data = await response.json();
@@ -636,7 +643,7 @@
       }
 
       try {
-        const result = await fetch('/api/admin/apps/generate', {
+        const result = await fetch(`${API_BASE_URL}/api/admin/apps/generate`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, description }),
@@ -659,5 +666,6 @@
       }
     }
   </script>
+  <script src="/assets/js/layout.js"></script>
 </body>
 </html>

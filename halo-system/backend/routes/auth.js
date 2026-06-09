@@ -51,7 +51,13 @@ router.post(
         roleId = superAdminRole ? superAdminRole.id : 1;
       }
 
-      const user = await authService.register(email, password, display_name, roleId);
+      const defaultRoleId = 5;
+      const user = await authService.register(
+        email,
+        password,
+        display_name,
+        roleId || defaultRoleId
+      );
 
       await auditService.log(req, 'user_registered', 'users', user.id);
 
