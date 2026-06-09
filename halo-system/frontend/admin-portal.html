@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Halo IT Services 365 - Super Admin Portal</title>
+  <link rel="stylesheet" href="/assets/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0d1117; color: #c9d1d9; }
+    
+    .admin-container { display: flex; min-height: 100vh; }
+    .admin-sidebar { width: 280px; background: #161b22; border-right: 1px solid #30363d; padding: 1.5rem; overflow-y: auto; position: fixed; height: 100vh; }
+    .admin-main { margin-left: 280px; width: calc(100% - 280px); display: flex; flex-direction: column; }
+    
+    .admin-header { background: linear-gradient(135deg, #1f6feb, #388bfd); color: white; padding: 1.5rem; }
+    .admin-header h1 { margin: 0; font-size: 1.8rem; }
+    .admin-header p { margin: 0.5rem 0 0 0; opacity: 0.9; }
+    
+    .admin-content { flex: 1; display: flex; overflow: hidden; }
+    .admin-panel { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #30363d; }
+    .admin-panel.main { border-right: none; }
+    
+    .nav-section { margin-bottom: 2rem; }
+    .nav-section-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #8b949e; margin-bottom: 0.75rem; }
+    .nav-link { display: block; padding: 0.5rem 0.75rem; margin: 0.25rem 0; border-radius: 6px; color: #c9d1d9; text-decoration: none; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+    .nav-link:hover, .nav-link.active { background: #30363d; color: #58a6ff; border-color: #1f6feb; }
+    
+    .panel-header { background: #161b22; border-bottom: 1px solid #30363d; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .panel-header h2 { margin: 0; font-size: 1.2rem; }
+    .panel-header-actions { display: flex; gap: 0.5rem; }
+    .btn-mini { padding: 0.4rem 0.8rem; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    .btn-mini:hover { background: #2ea043; }
+    .btn-mini.danger { background: #da3633; }
+    .btn-mini.danger:hover { background: #f85149; }
+    
+    .panel-content { flex: 1; overflow-y: auto; padding: 1rem; }
+    
+    /* Code Editor */
+    .editor-wrapper { display: flex; flex-direction: column; height: 100%; }
+    .editor-tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid #30363d; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+    .editor-tab { padding: 0.5rem 1rem; background: #0d1117; border: 1px solid #30363d; border-bottom: none; border-radius: 6px 6px 0 0; cursor: pointer; color: #8b949e; }
+    .editor-tab.active { background: #161b22; color: #58a6ff; border-color: #30363d; }
+    
+    .code-editor { flex: 1; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 1rem; font-family: 'Monaco', monospace; font-size: 0.9rem; overflow: hidden; display: flex; flex-direction: column; }
+    .code-editor textarea { flex: 1; background: #0d1117; color: #c9d1d9; border: none; outline: none; resize: none; font-family: inherit; font-size: inherit; padding: 0; }
+    .code-editor pre { margin: 0; overflow: hidden; }
+    
+    .terminal { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 1rem; font-family: 'Courier New', monospace; font-size: 0.9rem; color: #7ee787; max-height: 400px; overflow-y: auto; }
+    .terminal-line { margin: 0.25rem 0; }
+    .terminal-input { display: flex; margin-top: 0.5rem; }
+    .terminal-input input { flex: 1; background: #0d1117; color: #7ee787; border: none; outline: none; font-family: inherit; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 1rem; }
+    .card-title { font-weight: 600; margin-bottom: 0.5rem; color: #58a6ff; }
+    
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+    .feature-card { background: #0d1117; border: 2px solid #30363d; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s; }
+    .feature-card:hover { border-color: #58a6ff; background: #161b22; }
+    .feature-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .feature-card .title { font-weight: 600; margin-bottom: 0.25rem; }
+    .feature-card .desc { font-size: 0.85rem; color: #8b949e; }
+    
+    .expansion-item { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; cursor: pointer; transition: all 0.2s; }
+    .expansion-item:hover { background: #161b22; border-color: #58a6ff; }
+    .expansion-item.disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    .ai-widget { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; }
+    .ai-widget textarea { width: 100%; background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; border-radius: 4px; padding: 0.75rem; font-family: monospace; min-height: 100px; }
+    
+    .status-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+    .status-active { background: #238636; color: white; }
+    .status-inactive { background: #444c56; color: #c9d1d9; }
+    
+    @media (max-width: 1200px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .admin-sidebar { width: 200px; }
+      .admin-main { margin-left: 200px; width: calc(100% - 200px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Sidebar -->
+    <nav class="admin-sidebar">
+      <div style="margin-bottom: 2rem;">
+        <div style="font-size: 1.5rem; font-weight: 700; color: #58a6ff;">🚀 Halo Admin</div>
+        <small style="color: #8b949e;">Super Admin Portal</small>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Dashboard</div>
+        <a class="nav-link active" onclick="switchPanel('dashboard')">📊 Dashboard</a>
+        <a class="nav-link" onclick="switchPanel('overview')">📈 System Overview</a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Development</div>
+        <a class="nav-link" onclick="switchPanel('console')">💻 Dev Console</a>
+        <a class="nav-link" onclick="switchPanel('terminal')">⌨️ Terminal</a>
+        <a class="nav-link" onclick="switchPanel('sql')">🗄️ SQL Editor</a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">AI & Expansion</div>
+        <a class="nav-link" onclick="switchPanel('ai')">🤖 AI Assistant</a>
+        <a class="nav-link" onclick="switchPanel('expansion')">🧩 Expansion Center</a>
+        <a class="nav-link" onclick="switchPanel('apps')">📦 App Creation</a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Configuration</div>
+        <a class="nav-link" onclick="switchPanel('settings')">⚙️ Settings</a>
+        <a class="nav-link" onclick="switchPanel('logs')">📋 System Logs</a>
+      </div>
+
+      <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #30363d;">
+        <button class="btn-mini danger" style="width: 100%;" onclick="handleLogout()">Logout</button>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <!-- Header -->
+      <div class="admin-header">
+        <h1>🔐 Super Admin Portal</h1>
+        <p id="adminGreeting">Welcome back, Super Admin</p>
+      </div>
+
+      <!-- Content Panels -->
+      <div class="admin-content">
+        
+        <!-- Dashboard -->
+        <div id="dashboardPanel" class="admin-panel main" style="display: block;">
+          <div class="panel-header">
+            <h2>Dashboard</h2>
+          </div>
+          <div class="panel-content">
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-title">System Status</div>
+                <div style="margin: 1rem 0;">
+                  <div>Backend: <span class="status-badge status-active">ACTIVE</span></div>
+                  <div>Database: <span class="status-badge status-active">ONLINE</span></div>
+                  <div>AI Service: <span class="status-badge status-active" id="aiStatus">CONNECTED</span></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-title">Quick Stats</div>
+                <div style="margin: 1rem 0;">
+                  <div>Active Users: <strong id="activeUsers">0</strong></div>
+                  <div>Open Tickets: <strong id="openTickets">0</strong></div>
+                  <div>System Uptime: <strong id="uptime">--:--:--</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dev Console -->
+        <div id="consolePanel" class="admin-panel main" style="display: none;">
+          <div class="panel-header">
+            <h2>Developer Console</h2>
+            <div class="panel-header-actions">
+              <button class="btn-mini" onclick="clearConsole()">Clear</button>
+              <button class="btn-mini" onclick="exportConsole()">Export</button>
+            </div>
+          </div>
+          <div class="panel-content editor-wrapper">
+            <div class="terminal" id="consoleOutput"></div>
+            <div class="terminal-input" style="margin-top: 1rem;">
+              <span style="color: #7ee787; margin-right: 0.5rem;">➜</span>
+              <input type="text" id="consoleInput" placeholder="Enter command..." style="flex: 1;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Terminal -->
+        <div id="terminalPanel" class="admin-panel main" style="display: none;">
+          <div class="panel-header">
+            <h2>Backend Terminal</h2>
+            <div class="panel-header-actions">
+              <button class="btn-mini" onclick="clearTerminal()">Clear</button>
+            </div>
+          </div>
+          <div class="panel-content editor-wrapper">
+            <div class="terminal" id="terminalOutput"></div>
+            <div class="terminal-input" style="margin-top: 1rem;">
+              <span style="color: #7ee787; margin-right: 0.5rem;">$</span>
+              <input type="text" id="terminalInput" placeholder="bash command..." style="flex: 1;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- SQL Editor -->
+        <div id="sqlPanel" class="admin-panel main" style="display: none;">
+          <div class="panel-header">
+            <h2>SQL Editor</h2>
+            <div class="panel-header-actions">
+              <button class="btn-mini" onclick="executeSql()">Execute</button>
+              <button class="btn-mini" onclick="formatSql()">Format</button>
+            </div>
+          </div>
+          <div class="panel-content editor-wrapper">
+            <textarea id="sqlEditor" placeholder="SELECT * FROM tickets;" style="font-family: 'Monaco', monospace; background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; padding: 1rem; resize: none;"></textarea>
+            <div id="sqlResult" class="terminal" style="margin-top: 1rem; min-height: 200px;"></div>
+          </div>
+        </div>
+
+        <!-- AI Assistant -->
+        <div id="aiPanel" class="admin-panel main" style="display: none;">
+          <div class="panel-header">
+            <h2>🤖 AI Assistant - DeepSeek v4</h2>
+          </div>
+          <div class="panel-content">
+            <div class="ai-widget">
+              <div style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #8b949e;">Code Generation & System Modification</div>
+              <textarea id="aiCodePrompt" placeholder="Ask AI to generate code, modify features, or suggest improvements..."></textarea>
+              <button class="btn-mini" style="margin-top: 0.5rem; background: #1f6feb;" onclick="aiGenerateCode()">Generate Code</button>
+            </div>
+            
+            <div class="ai-widget">
+              <div style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #8b949e;">SQL Troubleshooting & Queries</div>
+              <textarea id="aiSqlPrompt" placeholder="Ask AI to help with SQL queries or debug issues..."></textarea>
+              <button class="btn-mini" style="margin-top: 0.5rem; background: #1f6feb;" onclick="aiSqlHelp()">Get SQL Help</button>
+            </div>
+
+            <div class="ai-widget">
+              <div style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #8b949e;">Feature Recommendations</div>
+              <textarea id="aiFeaturePrompt" placeholder="Describe what you want to build..."></textarea>
+              <button class="btn-mini" style="margin-top: 0.5rem; background: #1f6feb;" onclick="aiRecommendFeature()">Get Recommendations</button>
+            </div>
+
+            <div id="aiResponse" class="terminal" style="margin-top: 1rem; min-height: 250px;"></div>
+          </div>
+        </div>
+
+        <!-- Expansion Center -->
+        <div id="expansionPanel" class="admin-panel main" style="display: none;">
+          <div class="panel-header">
+            <h2>🧩 Expansion Center</h2>
+            <button class="btn-mini" onclick="switchPanel('apps')">+ New App</button>
+          </div>
+          <div class="panel-content">
+            <div id="expansionList"></div>
+          </div>
+        </div>
+
+        <!-- App Creation (Codespaces-like) -->
+        <div id="appsPanel" class="admin-panel main" style="display: none;">
+          <div class="panel-header">
+            <h2>📦 App Creation Center</h2>
+            <div class="panel-header-actions">
+              <button class="btn-mini" onclick="createNewApp()">+ New App</button>
+            </div>
+          </div>
+          <div class="panel-content">
+            <div class="features-grid">
+              <div class="feature-card" onclick="startAppTemplate('nodejs')">
+                <div class="icon">🟢</div>
+                <div class="title">Node.js App</div>
+                <div class="desc">Express, REST API, Backend service</div>
+              </div>
+              <div class="feature-card" onclick="startAppTemplate('react')">
+                <div class="icon">⚛️</div>
+                <div class="title">React Frontend</div>
+                <div class="desc">Modern SPA with components</div>
+              </div>
+              <div class="feature-card" onclick="startAppTemplate('database')">
+                <div class="icon">🗄️</div>
+                <div class="title">Database Schema</div>
+                <div class="desc">Sequelize models & migrations</div>
+              </div>
+              <div class="feature-card" onclick="startAppTemplate('integration')">
+                <div class="icon">🔌</div>
+                <div class="title">External Integration</div>
+                <div class="desc">API endpoints & webhooks</div>
+              </div>
+            </div>
+            <div id="appWorkspace" style="margin-top: 2rem; display: none;">
+              <h3>App Builder</h3>
+              <input type="text" id="appName" placeholder="App name..." style="width: 100%; padding: 0.5rem; background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; margin-bottom: 1rem;" />
+              <textarea id="appDescription" placeholder="Description..." style="width: 100%; min-height: 100px; padding: 0.5rem; background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; margin-bottom: 1rem; font-family: inherit;"></textarea>
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="btn-mini" onclick="generateApp()">Generate App</button>
+                <button class="btn-mini" onclick="document.getElementById('appWorkspace').style.display = 'none'">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div id="settingsPanel" class="admin-panel main" style="display: none;">
+          <div class="panel-header">
+            <h2>⚙️ Settings & Configuration</h2>
+          </div>
+          <div class="panel-content">
+            <div class="card" style="margin-bottom: 1rem;">
+              <div class="card-title">Azure DeepSeek Configuration</div>
+              <div style="margin-top: 1rem;">
+                <div style="margin-bottom: 0.5rem;">
+                  <label style="display: block; font-size: 0.9rem; margin-bottom: 0.25rem;">API Endpoint</label>
+                  <input type="text" id="azureEndpoint" placeholder="https://your-resource.openai.azure.com/openai/v1" style="width: 100%; padding: 0.5rem; background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px;" />
+                </div>
+                <div style="margin-bottom: 0.5rem;">
+                  <label style="display: block; font-size: 0.9rem; margin-bottom: 0.25rem;">API Key</label>
+                  <input type="password" id="azureKey" placeholder="Your API key" style="width: 100%; padding: 0.5rem; background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px;" />
+                  <small style="display: block; margin-top: 0.25rem; color: #8b949e;">⚠️ Change this if key is compromised</small>
+                </div>
+                <button class="btn-mini" onclick="updateAzureConfig()">Update Configuration</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">System Settings</div>
+              <div style="margin-top: 1rem;">
+                <label><input type="checkbox" checked /> Enable AI Features</label>
+                <label style="display: block; margin-top: 0.5rem;"><input type="checkbox" checked /> Enable Terminal Access</label>
+                <label style="display: block; margin-top: 0.5rem;"><input type="checkbox" checked /> Enable SQL Editor</label>
+                <label style="display: block; margin-top: 0.5rem;"><input type="checkbox" checked /> Enable Dev Console</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/utils.js"></script>
+
+  <script>
+    // Check authentication
+    document.addEventListener('DOMContentLoaded', () => {
+      authManager.requireAuth();
+      const user = authManager.getUser();
+      
+      if (user?.role !== 'super_admin' && user?.role !== 'admin') {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      document.getElementById('adminGreeting').textContent = `Welcome back, ${user?.display_name || 'Admin'}`;
+      loadDashboardMetrics();
+      loadAiSettings();
+      setupConsoleHandlers();
+      loadExpansionCenter();
+    });
+
+    function switchPanel(panelName) {
+      document.querySelectorAll('.admin-panel').forEach(p => p.style.display = 'none');
+      document.getElementById(panelName + 'Panel').style.display = 'flex';
+      
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      event.target?.classList.add('active');
+    }
+
+    async function loadDashboardMetrics() {
+      try {
+        const dashboard = await haloAPI.getDashboardMetrics();
+        document.getElementById('activeUsers').textContent = dashboard?.user_count || 0;
+        document.getElementById('openTickets').textContent = dashboard?.open_tickets || 0;
+        updateUptime();
+      } catch (error) {
+        console.error('Failed to load metrics:', error);
+      }
+    }
+
+    function updateUptime() {
+      const startTime = new Date(localStorage.getItem('systemStartTime') || Date.now());
+      setInterval(() => {
+        const elapsed = new Date() - startTime;
+        const hours = Math.floor(elapsed / 3600000);
+        const minutes = Math.floor((elapsed % 3600000) / 60000);
+        const seconds = Math.floor((elapsed % 60000) / 1000);
+        document.getElementById('uptime').textContent = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    function setupConsoleHandlers() {
+      document.getElementById('consoleInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') executeConsoleCommand(e.target.value);
+      });
+
+      document.getElementById('terminalInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') executeTerminalCommand(e.target.value);
+      });
+    }
+
+    function executeConsoleCommand(cmd) {
+      const output = document.getElementById('consoleOutput');
+      output.innerHTML += `<div class="terminal-line"><span style="color: #7ee787;">➜</span> ${cmd}</div>`;
+      
+      // Execute command
+      try {
+        if (cmd.startsWith('select ') || cmd.startsWith('SELECT ')) {
+          // SQL
+          executeSQLDirect(cmd);
+        } else if (cmd.startsWith('ai ')) {
+          // AI command
+          const prompt = cmd.substring(3);
+          aiCommand(prompt);
+        } else {
+          output.innerHTML += `<div class="terminal-line" style="color: #f85149;">Command not recognized. Use: SELECT ..., ai [prompt]</div>`;
+        }
+      } catch (error) {
+        output.innerHTML += `<div class="terminal-line" style="color: #f85149;">Error: ${error.message}</div>`;
+      }
+      
+      document.getElementById('consoleInput').value = '';
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function executeTerminalCommand(cmd) {
+      const output = document.getElementById('terminalOutput');
+      output.innerHTML += `<div class="terminal-line"><span style="color: #7ee787;">$</span> ${cmd}</div>`;
+      
+      // Send to backend terminal
+      fetch('/api/admin/terminal', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: cmd }),
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.output) {
+          output.innerHTML += `<div class="terminal-line">${data.output}</div>`;
+        }
+        if (data.error) {
+          output.innerHTML += `<div class="terminal-line" style="color: #f85149;">${data.error}</div>`;
+        }
+      })
+      .catch(err => {
+        output.innerHTML += `<div class="terminal-line" style="color: #f85149;">Connection error: ${err.message}</div>`;
+      });
+      
+      document.getElementById('terminalInput').value = '';
+      output.scrollTop = output.scrollHeight;
+    }
+
+    async function executeSql() {
+      const query = document.getElementById('sqlEditor').value;
+      const result = document.getElementById('sqlResult');
+      
+      try {
+        const response = await fetch('/api/admin/sql', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query }),
+        });
+        const data = await response.json();
+        result.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      } catch (error) {
+        result.innerHTML = `<div style="color: #f85149;">Error: ${error.message}</div>`;
+      }
+    }
+
+    async function executeSQLDirect(query) {
+      const result = document.getElementById('sqlResult');
+      try {
+        const response = await fetch('/api/admin/sql', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query }),
+        });
+        const data = await response.json();
+        result.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      } catch (error) {
+        result.innerHTML = `<div style="color: #f85149;">Error: ${error.message}</div>`;
+      }
+    }
+
+    function clearConsole() {
+      document.getElementById('consoleOutput').innerHTML = '';
+    }
+
+    function clearTerminal() {
+      document.getElementById('terminalOutput').innerHTML = '';
+    }
+
+    async function enableExpansion(expansionId) {
+      try {
+        const response = await fetch(`/api/admin/expansions/${expansionId}/enable`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
+        });
+        const data = await response.json();
+        if (data.success) {
+          UIUtils.showToast('Expansion enabled', 'success');
+          loadExpansionCenter();
+        } else {
+          UIUtils.showToast(data.error || 'Unable to enable expansion', 'error');
+        }
+      } catch (error) {
+        UIUtils.showToast(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    function configureExpansion(expansionId) {
+      UIUtils.showModal('Configure Expansion', `<p>Configure expansion <strong>${expansionId}</strong> in the backend route.</p>`, [
+        { label: 'Close', action: 'close', class: 'btn-primary', callback: () => {} },
+      ]);
+    }
+
+    async function aiGenerateCode() {
+      const prompt = document.getElementById('aiCodePrompt').value;
+      const response = document.getElementById('aiResponse');
+      response.innerHTML = '<div style="color: #7ee787;">Generating code...</div>';
+      
+      try {
+        const result = await fetch('/api/admin/ai/code', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt }),
+        });
+        const data = await result.json();
+        response.innerHTML = `<pre>${data.content || data.error}</pre>`;
+      } catch (error) {
+        response.innerHTML = `<div style="color: #f85149;">Error: ${error.message}</div>`;
+      }
+    }
+
+    async function aiSqlHelp() {
+      const prompt = document.getElementById('aiSqlPrompt').value;
+      const response = document.getElementById('aiResponse');
+      response.innerHTML = '<div style="color: #7ee787;">Analyzing SQL...</div>';
+      
+      try {
+        const result = await fetch('/api/admin/ai/sql', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt }),
+        });
+        const data = await result.json();
+        response.innerHTML = `<pre>${data.content || data.error}</pre>`;
+      } catch (error) {
+        response.innerHTML = `<div style="color: #f85149;">Error: ${error.message}</div>`;
+      }
+    }
+
+    async function aiRecommendFeature() {
+      const prompt = document.getElementById('aiFeaturePrompt').value;
+      const response = document.getElementById('aiResponse');
+      response.innerHTML = '<div style="color: #7ee787;">Generating recommendations...</div>';
+      
+      try {
+        const result = await fetch('/api/admin/ai/feature', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt }),
+        });
+        const data = await result.json();
+        response.innerHTML = `<pre>${data.content || data.error}</pre>`;
+      } catch (error) {
+        response.innerHTML = `<div style="color: #f85149;">Error: ${error.message}</div>`;
+      }
+    }
+
+    async function updateAzureConfig() {
+      const endpoint = document.getElementById('azureEndpoint').value;
+      const key = document.getElementById('azureKey').value;
+      const payload = { endpoint };
+      if (key && !key.includes('*')) {
+        payload.apiKey = key;
+      }
+
+      try {
+        const result = await fetch('/api/admin/ai/config', {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await result.json();
+        UIUtils.showToast(data.message || 'Configuration updated', 'success');
+      } catch (error) {
+        UIUtils.showToast(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function loadExpansionCenter() {
+      try {
+        const result = await fetch('/api/admin/expansions', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        });
+        const data = await result.json();
+        const list = document.getElementById('expansionList');
+        list.innerHTML = (data.expansions || []).map(exp => `
+          <div class="expansion-item ${exp.enabled ? '' : ''}">
+            <strong>${exp.name}</strong>
+            <div style="font-size: 0.85rem; color: #8b949e; margin-top: 0.25rem;">${exp.description}</div>
+            <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; align-items: center;">
+              <span style="font-size:0.75rem; color:${exp.enabled ? '#3fb950' : '#8b949e'};">${exp.enabled ? 'Enabled' : 'Disabled'}</span>
+              <button class="btn-mini" onclick="enableExpansion('${exp.id}')">Enable</button>
+              <button class="btn-mini" onclick="configureExpansion('${exp.id}')">Configure</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Failed to load expansions:', error);
+      }
+    }
+
+    async function loadAiSettings() {
+      try {
+        const response = await fetch('/api/admin/ai/settings', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        });
+        const data = await response.json();
+        if (data.success && data.settings) {
+          document.getElementById('azureEndpoint').value = data.settings.azure.endpoint || '';
+          document.getElementById('azureKey').value = data.settings.azure.hasKey ? '************' : '';
+        }
+      } catch (error) {
+        console.error('Failed to load AI settings:', error);
+      }
+    }
+
+    function startAppTemplate(template) {
+      document.getElementById('appWorkspace').style.display = 'block';
+      document.getElementById('appName').value = `${template}-app`;
+      document.getElementById('appDescription').value = `New ${template} application`;
+    }
+
+    async function generateApp() {
+      const name = document.getElementById('appName').value;
+      const description = document.getElementById('appDescription').value;
+      
+      if (!name) {
+        UIUtils.showToast('App name is required', 'error');
+        return;
+      }
+
+      try {
+        const result = await fetch('/api/admin/apps/generate', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, description }),
+        });
+        const data = await result.json();
+        UIUtils.showToast('App generated successfully', 'success');
+        document.getElementById('appWorkspace').style.display = 'none';
+      } catch (error) {
+        UIUtils.showToast(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function handleLogout() {
+      try {
+        await authManager.logout();
+        window.location.href = '/login.html';
+      } catch (error) {
+        authManager.clearUser();
+        window.location.href = '/login.html';
+      }
+    }
+  </script>
+</body>
+</html>

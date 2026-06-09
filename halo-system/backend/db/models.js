@@ -310,6 +310,88 @@ const Ticket = sequelize.define('Ticket', {
   },
 });
 
+const TicketComment = sequelize.define('TicketComment', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  ticket_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: Ticket,
+      key: 'id',
+    },
+  },
+  author_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: User,
+      key: 'id',
+    },
+  },
+  comment: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+  },
+  internal: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  created_at: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  },
+});
+
+const TicketAttachment = sequelize.define('TicketAttachment', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  ticket_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: Ticket,
+      key: 'id',
+    },
+  },
+  uploaded_by: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: User,
+      key: 'id',
+    },
+  },
+  file_name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  file_type: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  file_url: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  metadata: {
+    type: DataTypes.JSON,
+    allowNull: true,
+  },
+  created_at: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  },
+});
+
 const Client = sequelize.define('Client', {
   id: {
     type: DataTypes.INTEGER,
@@ -477,6 +559,16 @@ TicketTimeEntry.belongsTo(Ticket, { foreignKey: 'ticket_id' });
 TicketTimeEntry.belongsTo(User, { foreignKey: 'user_id' });
 User.hasMany(TicketTimeEntry, { foreignKey: 'user_id' });
 
+Ticket.hasMany(TicketComment, { foreignKey: 'ticket_id' });
+TicketComment.belongsTo(Ticket, { foreignKey: 'ticket_id' });
+TicketComment.belongsTo(User, { as: 'author', foreignKey: 'author_id' });
+User.hasMany(TicketComment, { foreignKey: 'author_id' });
+
+Ticket.hasMany(TicketAttachment, { foreignKey: 'ticket_id' });
+TicketAttachment.belongsTo(Ticket, { foreignKey: 'ticket_id' });
+TicketAttachment.belongsTo(User, { as: 'uploader', foreignKey: 'uploaded_by' });
+User.hasMany(TicketAttachment, { foreignKey: 'uploaded_by' });
+
 Ticket.hasMany(TicketApproval, { foreignKey: 'ticket_id' });
 TicketApproval.belongsTo(Ticket, { foreignKey: 'ticket_id' });
 TicketApproval.belongsTo(User, { as: 'approver', foreignKey: 'approver_id' });
@@ -505,4 +597,6 @@ module.exports = {
   ClientUser,
   TicketTimeEntry,
   TicketApproval,
+  TicketComment,
+  TicketAttachment,
 };

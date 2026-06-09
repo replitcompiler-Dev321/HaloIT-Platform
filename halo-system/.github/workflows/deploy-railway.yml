@@ -1,0 +1,74 @@
+name: Deploy Backend to Railway
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    name: Deploy to Railway
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          cd halo-system
+          npm ci --production
+
+      - name: Install Railway CLI
+        run: |
+          curl -sSL https://railway.app/install.sh | sh
+
+      - name: Railway login (CI)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway login --ci "$RAILWAY_TOKEN"
+
+      - name: Initialize/link project & set variables
+        env:
+          RAILWAY_PROJECT_NAME: ${{ secrets.RAILWAY_PROJECT_NAME }}
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          SUPER_ADMIN_OWNER_EMAIL: ${{ secrets.SUPER_ADMIN_OWNER_EMAIL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          PORT: 3000
+          NODE_ENV: production
+          AZURE_OPENAI_DEPLOYMENT: DeepSeek-V4-Pro
+          AI_PROVIDER: azure
+        run: |
+          set -euo pipefail
+          cd halo-system
+          railway init --name "$RAILWAY_PROJECT_NAME" || true
+          
+          # Generate JWT_SECRET if not provided
+          if [ -z "$JWT_SECRET" ]; then
+            JWT_SECRET=$(openssl rand -base64 32)
+            echo "Generated JWT_SECRET: $JWT_SECRET"
+          fi
+          railway variables set JWT_SECRET "$JWT_SECRET"
+          railway variables set NODE_ENV production
+          railway variables set PORT 3000
+          railway variables set AI_PROVIDER "$AI_PROVIDER"
+          railway variables set AZURE_OPENAI_DEPLOYMENT "$AZURE_OPENAI_DEPLOYMENT"
+          
+          # Set Azure variables if provided
+          for name in AZURE_OPENAI_ENDPOINT AZURE_OPENAI_API_KEY SUPER_ADMIN_OWNER_EMAIL; do
+            val="${!name:-}"
+            if [ -n "$val" ]; then
+              echo "Setting Railway variable: $name"
+              railway variables set "$name" "$val" || true
+            fi
+          done
+
+      - name: Deploy (railway up)
+        run: |
+          cd halo-system
+          railway up --detach

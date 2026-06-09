@@ -398,6 +398,18 @@ tr:hover {
   animation: slideUp 0.3s;
 }
 
+/* User-provided overrides */
+a {
+  text-decoration: none;
+  color: #464feb;
+}
+tr th, tr td {
+  border: 1px solid #e6e6e6;
+}
+tr th {
+  background-color: #f5f5f5;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

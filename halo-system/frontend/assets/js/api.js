@@ -295,6 +295,22 @@ class HaloAPI {
     });
   }
 
+  // ===== TICKET COMMENT ENDPOINTS =====
+
+  async getTicketComments(ticketId) {
+    return this.request(`/api/tickets/${ticketId}/comments`, { method: 'GET' });
+  }
+
+  async addTicketComment(ticketId, commentText, isInternal = false) {
+    return this.request(`/api/tickets/${ticketId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({
+        comment: commentText,
+        internal: isInternal,
+      }),
+    });
+  }
+
   // ===== UTILITY METHODS =====
 
   /**

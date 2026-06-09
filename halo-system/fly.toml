@@ -1,0 +1,15 @@
+app = "haloitservices365-backend"
+primary_region = "iad"
+
+[build]
+  # Uses the repository Dockerfile by default
+  image = ""
+
+[env]
+  PORT = "3000"
+
+[experimental]
+  allowed_public_ports = [3000]
+
+[metrics]
+  port = 9090
