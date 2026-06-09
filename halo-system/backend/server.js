@@ -19,6 +19,10 @@ const ticketRoutes = require('./routes/tickets');
 const clientRoutes = require('./routes/clients');
 const slaRoutes = require('./routes/sla');
 const clientPortalRoutes = require('./routes/clientPortal');
+const monitoringRoutes = require('./routes/monitoring');
+
+// Import services
+const monitoringService = require('./services/monitoring');
 
 // Import AI service (existing)
 const { handleAiAction, getAiSettings, updateAiSettings } = require('./ai/aiService');
@@ -82,10 +86,16 @@ const startServer = async () => {
     app.use('/api/users', usersRoutes);
     app.use('/api/audit-logs', auditRoutes);
     app.use('/api/dashboard', dashboardRoutes);
+    app.use('/api/monitoring', monitoringRoutes);
     app.use('/api/tickets', ticketRoutes);
     app.use('/api/clients', clientRoutes);
     app.use('/api/sla', slaRoutes);
     app.use('/api/portal', clientPortalRoutes);
+
+    // Initialize monitoring service with demo data
+    console.log('🔍 Initializing monitoring service...');
+    monitoringService.generateMockDeviceData();
+    console.log('✅ Monitoring service initialized with demo devices');
 
     // AI Settings routes
     app.get('/api/ai/settings', optionalAuth, (req, res) => {
