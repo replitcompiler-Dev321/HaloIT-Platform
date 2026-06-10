@@ -47,3 +47,9 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Local deployment / secret artifacts
+*ssh key
+*key
+-ONLYFORREFFERENCE-MATERIAL/Github-Connector.zip
+PROGRESS_BACKUP_2026-06-10.md
