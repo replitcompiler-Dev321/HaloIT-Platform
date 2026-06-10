@@ -48,6 +48,15 @@ Thumbs.db
 .cache/
 .local/
 
+# Secrets and SSH Keys - MUST NEVER BE COMMITTED
+Secrets-and-Keys/
+*.pem
+*.key
+*.pub
+*-privatekey
+*-publickey
+.ssh/
+
 # Local deployment / secret artifacts
 *ssh key
 *key
